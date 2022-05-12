@@ -1,24 +1,27 @@
-alessio_la_greca_990973/smart_city/Taxi.java
- alessio_la_greca_990973.smart_city.Taxi
 Main.java
  Main
-alessio_la_greca_990973/smart_city/District.java
- alessio_la_greca_990973.smart_city.District
-alessio_la_greca_990973/server/AdministratorServer.java
- alessio_la_greca_990973.server.AdministratorServer
-ride/request/RideRequestMessageOuterClass.java
- ride.request.RideRequestMessageOuterClass
- ride.request.RideRequestMessageOuterClass$RideRequestMessage
- ride.request.RideRequestMessageOuterClass$RideRequestMessage$1
- ride.request.RideRequestMessageOuterClass$RideRequestMessage$Builder
- ride.request.RideRequestMessageOuterClass$RideRequestMessageOrBuilder
-alessio_la_greca_990973/client/AdministratorClient.java
- alessio_la_greca_990973.client.AdministratorClient
-alessio_la_greca_990973/smart_city/SmartCity.java
- alessio_la_greca_990973.smart_city.SmartCity
 alessio_la_greca_990973/commons/Commons.java
  alessio_la_greca_990973.commons.Commons
 alessio_la_greca_990973/seta/Seta.java
  alessio_la_greca_990973.seta.Seta
 alessio_la_greca_990973/seta/RideRequestThread.java
  alessio_la_greca_990973.seta.RideRequestThread
+ride/request/RideRequestMessageOuterClass.java
+ ride.request.RideRequestMessageOuterClass
+ ride.request.RideRequestMessageOuterClass$RideRequestMessage
+ ride.request.RideRequestMessageOuterClass$RideRequestMessage$1
+ ride.request.RideRequestMessageOuterClass$RideRequestMessage$Builder
+ ride.request.RideRequestMessageOuterClass$RideRequestMessageOrBuilder
+alessio_la_greca_990973/smart_city/District.java
+ alessio_la_greca_990973.smart_city.District
+alessio_la_greca_990973/client/AdministratorClient.java
+ alessio_la_greca_990973.client.AdministratorClient
+alessio_la_greca_990973/smart_city/SmartCity.java
+ alessio_la_greca_990973.smart_city.SmartCity
+alessio_la_greca_990973/server/AdministratorServer.java
+ alessio_la_greca_990973.server.AdministratorServer
+alessio_la_greca_990973/smart_city/taxi/Taxi.java
+ alessio_la_greca_990973.smart_city.taxi.Taxi
+alessio_la_greca_990973/smart_city/taxi/SubscriberExample.java
+ alessio_la_greca_990973.smart_city.taxi.SubscriberExample
+ alessio_la_greca_990973.smart_city.taxi.SubscriberExample$1
