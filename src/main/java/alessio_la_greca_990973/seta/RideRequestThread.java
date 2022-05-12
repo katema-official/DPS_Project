@@ -1,5 +1,6 @@
 package alessio_la_greca_990973.seta;
 
+import alessio_la_greca_990973.commons.Commons;
 import alessio_la_greca_990973.smart_city.District;
 import alessio_la_greca_990973.smart_city.SmartCity;
 import org.eclipse.paho.client.mqttv3.*;
@@ -9,12 +10,10 @@ import java.util.Random;
 
 public class RideRequestThread implements Runnable{
 
-    private Seta setaReference;
+    private static boolean DEBUG_LOCAL = true;
+
     private int requestDelay = 5000;    //so it can be changed if needed
 
-    public RideRequestThread(Seta setaReference){
-        this.setaReference = setaReference;
-    }
 
     @Override
     public void run() {
@@ -38,25 +37,9 @@ public class RideRequestThread implements Runnable{
             client.connect(connOpts);
             System.out.println(clientId + " Connected!");
 
-            //every five seconds, generate the random value of temperature
-            /*while(true) {
-                //random temperature
-                String payload = String.valueOf(18 + Math.random() * 4);
-                MqttMessage message = new MqttMessage(payload.getBytes());
-
-                // Set the QoS on the Message
-                message.setQos(qos);
-                System.out.println(clientId + " Publishing message: " + payload + " ...");
-                client.publish(topic, message);
-                System.out.println(clientId + " Message published");
-
-            }*/
-
             //if (client.isConnected())
             //    client.disconnect();
             //System.out.println("Publisher " + clientId + " disconnected");
-
-
 
         } catch (MqttException me ) {
             System.out.println("reason " + me.getReasonCode());
@@ -76,7 +59,7 @@ public class RideRequestThread implements Runnable{
             try {
                 Thread.sleep(millis);
 
-                int ID = setaReference.generateNewRideRequestID();
+                int ID = Seta.generateNewRideRequestID();
                 int startingX = SmartCity.generateRandomXInsideSmartCity();
                 int startingY = SmartCity.generateRandomYInsideSmartCity();
                 int arrivingX = SmartCity.generateRandomXInsideSmartCity();
@@ -106,6 +89,10 @@ public class RideRequestThread implements Runnable{
 
 
                 Thread.sleep(requestDelay - millis);
+
+                if(Commons.DEBUG_GLOBAL && RideRequestThread.DEBUG_LOCAL){
+                    System.out.println("Cycle ended after publishing requst number " + ID + ". Restarting...");
+                }
 
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
