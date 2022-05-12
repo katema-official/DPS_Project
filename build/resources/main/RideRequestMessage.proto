@@ -1,0 +1,15 @@
+syntax = "proto3";
+package ride.request;
+
+message RideRequestMessage{
+    int32 id = 1;
+    int32 startingX = 2;
+    int32 startingY = 3;
+    int32 arrivingX = 4;
+    int32 arrivingY = 5;
+}
+
+
+
+
+
