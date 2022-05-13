@@ -4,13 +4,10 @@ import alessio_la_greca_990973.server.datas.TaxiRegisteredOnTheServer;
 import alessio_la_greca_990973.server.datas.TaxiReplyToJoin;
 import alessio_la_greca_990973.server.datas.TaxiServerRepresentation;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
-@Path("append")
+@Path("taxi")
 public class TaxiRestService {
     //rest service for inserting a new taxi
 
@@ -18,6 +15,7 @@ public class TaxiRestService {
     @Path("join")
     @POST
     @Consumes({"application/json", "application/xml"})
+    @Produces({"application/json", "application/xml"})
     public Response addTaxi(TaxiServerRepresentation t){
         //to add a new taxi, we must synchronize on those operation:
         //1) is the ID of this taxi already present? If so, you
@@ -29,8 +27,8 @@ public class TaxiRestService {
         boolean success = TaxiRegisteredOnTheServer.getInstance().add(t);
         if(success) {
             int id = t.getId();
-            TaxiReplyToJoin trtj = new TaxiReplyToJoin(id, TaxiRegisteredOnTheServer.getInstance().getActualTaxis());
-            return Response.ok().build();   //TODO
+            TaxiReplyToJoin trtj = new TaxiReplyToJoin(id);
+            return Response.ok(trtj).build();
         }else{
             return Response.status(Response.Status.NOT_ACCEPTABLE).build();
         }

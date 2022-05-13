@@ -57,4 +57,8 @@ public class TaxiRegisteredOnTheServer {
     public HashMap<Integer, TaxiServerRepresentation> getActualTaxis(){
         return actualTaxis;
     }
+
+    public void setActualTaxis(HashMap<Integer, TaxiServerRepresentation> actualTaxis) {
+        this.actualTaxis = actualTaxis;
+    }
 }

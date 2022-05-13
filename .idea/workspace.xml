@@ -5,11 +5,30 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="db07cb2b-569d-4f04-af1c-f7bbfe10a618" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/datas/TaxiRegisteredOnTheServer.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/datas/TaxiReplyToJoin.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/6.7/executionHistory/executionHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/executionHistory/executionHistory.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/6.7/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/executionHistory/executionHistory.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/6.7/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/fileHashes/fileHashes.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/6.7/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/fileHashes/fileHashes.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/6.7/javaCompile/javaCompile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/javaCompile/javaCompile.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/6.7/javaCompile/taskHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/javaCompile/taskHistory.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/classes/java/main/alessio_la_greca_990973/server/AdministratorServer.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/java/main/alessio_la_greca_990973/server/AdministratorServer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/tmp/compileJava/source-classes-mapping.txt" beforeDir="false" afterPath="$PROJECT_DIR$/build/tmp/compileJava/source-classes-mapping.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/paho106426319819100-tcplocalhost1883/.lck" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/paho106426319844300-tcplocalhost1883/.lck" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/paho106447412450700-tcplocalhost1883/.lck" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/paho106574456776900-tcplocalhost1883/.lck" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/paho106574456973100-tcplocalhost1883/.lck" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/paho106574456973100-tcplocalhost1883/s-13.msg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/paho106604119418400-tcplocalhost1883/.lck" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/client/AdministratorClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/client/AdministratorClient.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/TaxiRestService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/TaxiRestService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/datas/TaxiServerRepresentation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/datas/TaxiServerRepresentation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/datas/TaxiRegisteredOnTheServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/datas/TaxiRegisteredOnTheServer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/datas/TaxiReplyToJoin.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/datas/TaxiReplyToJoin.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,23 +66,35 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="node.js.detected.package.eslint" value="true" />
-    <property name="node.js.detected.package.tslint" value="true" />
-    <property name="node.js.selected.package.eslint" value="(autodetect)" />
-    <property name="node.js.selected.package.tslint" value="(autodetect)" />
-  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "C:/Users/Jacopo/Desktop/Esercizi Laboratorio Desktop/rest_dictionary",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)"
+  }
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\Jacopo\Desktop\Progetto_DPS_Alessio_La_Greca\src\main\java\alessio_la_greca_990973\simulator" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.SubscriberExample">
+  <component name="RunManager" selected="Application.AdministratorServer">
+    <configuration name="AdministratorServer" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="alessio_la_greca_990973.server.AdministratorServer" />
+      <module name="DPS_project_2022.main" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="alessio_la_greca_990973.server.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Seta" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="alessio_la_greca_990973.seta.Seta" />
       <module name="DPS_project_2022.main" />
@@ -92,6 +123,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.AdministratorServer" />
         <item itemvalue="Application.SubscriberExample" />
         <item itemvalue="Application.Seta" />
       </list>
@@ -107,6 +139,8 @@
       <updated>1652384604741</updated>
       <workItem from="1652384606685" duration="2829000" />
       <workItem from="1652424773776" duration="8271000" />
+      <workItem from="1652453038834" duration="267000" />
+      <workItem from="1652454725159" duration="2248000" />
     </task>
     <servers />
   </component>
