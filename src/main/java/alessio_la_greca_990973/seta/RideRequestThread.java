@@ -62,6 +62,7 @@ public class RideRequestThread implements Runnable{
                 int ID = Seta.generateNewRideRequestID();
                 int startingX = SmartCity.generateRandomXInsideSmartCity();
                 int startingY = SmartCity.generateRandomYInsideSmartCity();
+                //devono essere diversi
                 int arrivingX = SmartCity.generateRandomXInsideSmartCity();
                 int arrivingY = SmartCity.generateRandomYInsideSmartCity();
 

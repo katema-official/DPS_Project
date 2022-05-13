@@ -1,6 +1,5 @@
 package alessio_la_greca_990973.smart_city.taxi;
 
-import alessio_la_greca_990973.seta.RideRequestThread;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.eclipse.paho.client.mqttv3.*;
 import ride.request.RideRequestMessageOuterClass.RideRequestMessage;
@@ -40,7 +39,7 @@ public class SubscriberExample {
                             "\n\tTopic:   " + topic +
                             "\n\tMessage: " + receivedMessage +
                             "\n\tQoS:     " + message.getQos() + "" +
-                            "\n");
+                            "\n\tTime in milliseconds: " + System.currentTimeMillis() + "\n");
 
                 }
 
