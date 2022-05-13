@@ -1,4 +1,4 @@
-package alessio_la_greca_990973.server.datas;
+package alessio_la_greca_990973.server.fortaxi.datas;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -11,7 +11,7 @@ import java.util.*;
 public class TaxiReplyToJoin {
 
     @XmlElement(name = "otherTaxis")
-    List<TaxiRegisteredOnTheServer> currentTaxis;
+    List<TaxiServerRepresentation> currentTaxis;
 
     private int startingX;
     private int startingY;
@@ -21,13 +21,13 @@ public class TaxiReplyToJoin {
     public TaxiReplyToJoin(int myId){
 
         synchronized (TaxiRegisteredOnTheServer.getInstance()) {
-            currentTaxis = new ArrayList<TaxiRegisteredOnTheServer>();
+            currentTaxis = new ArrayList<TaxiServerRepresentation>();
             Set entrySet = TaxiRegisteredOnTheServer.getInstance().getActualTaxis().entrySet();
             Iterator it = entrySet.iterator();
             while (it.hasNext()) {
                 Map.Entry entry = (Map.Entry) it.next();
                 if (!entry.getKey().equals(myId)) {
-                    currentTaxis.add((TaxiRegisteredOnTheServer) entry.getValue());
+                    currentTaxis.add((TaxiServerRepresentation) entry.getValue());
                 }
             }
 
@@ -39,7 +39,7 @@ public class TaxiReplyToJoin {
         }
     }
 
-    public List<TaxiRegisteredOnTheServer> getCurrentTaxis() {
+    public List<TaxiServerRepresentation> getCurrentTaxis() {
         return currentTaxis;
     }
 
@@ -51,7 +51,7 @@ public class TaxiReplyToJoin {
         return startingY;
     }
 
-    public void setCurrentTaxis(List<TaxiRegisteredOnTheServer> currentTaxis) {
+    public void setCurrentTaxis(List<TaxiServerRepresentation> currentTaxis) {
         this.currentTaxis = currentTaxis;
     }
 

@@ -1,8 +1,9 @@
-package alessio_la_greca_990973.server;
+package alessio_la_greca_990973.server.fortaxi;
 
-import alessio_la_greca_990973.server.datas.TaxiRegisteredOnTheServer;
-import alessio_la_greca_990973.server.datas.TaxiReplyToJoin;
-import alessio_la_greca_990973.server.datas.TaxiServerRepresentation;
+import alessio_la_greca_990973.server.fortaxi.datas.TaxiRegisteredOnTheServer;
+import alessio_la_greca_990973.server.fortaxi.datas.TaxiReplyToJoin;
+import alessio_la_greca_990973.server.fortaxi.datas.TaxiServerRepresentation;
+import alessio_la_greca_990973.server.fortaxi.datas.statistics.TaxiStatisticsPacket;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
@@ -37,7 +38,7 @@ public class TaxiRestService {
     //service used by a taxi to delete itself from the smart city
     @Path("leave")
     @DELETE
-    public Response deleteTaxi(int id){
+    public Response deleteTaxi(@QueryParam("id") int id){
         //to delete a taxi from the smart city, we simply receive the ID, delete the
         //corrisponding taxi from the data structure and respond with an ok message.
         //Even if in this project we shouldn't have incoming delete requests with
@@ -50,6 +51,13 @@ public class TaxiRestService {
         }else{
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
+    }
+
+    //service used by a taxi to add new statistics
+    @Path("append")
+    @POST
+    public Response appendStatistic(TaxiStatisticsPacket packet){
+
     }
 
 }

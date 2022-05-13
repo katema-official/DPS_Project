@@ -60,11 +60,18 @@ public class RideRequestThread implements Runnable{
                 Thread.sleep(millis);
 
                 int ID = Seta.generateNewRideRequestID();
-                int startingX = SmartCity.generateRandomXInsideSmartCity();
-                int startingY = SmartCity.generateRandomYInsideSmartCity();
-                //devono essere diversi
-                int arrivingX = SmartCity.generateRandomXInsideSmartCity();
-                int arrivingY = SmartCity.generateRandomYInsideSmartCity();
+
+                int startingX;
+                int startingY;
+                int arrivingX;
+                int arrivingY;
+                do {
+                    startingX = SmartCity.generateRandomXInsideSmartCity();
+                    startingY = SmartCity.generateRandomYInsideSmartCity();
+                    //devono essere diversi
+                    arrivingX = SmartCity.generateRandomXInsideSmartCity();
+                    arrivingY = SmartCity.generateRandomYInsideSmartCity();
+                }while(startingX == arrivingX && startingY == arrivingY);
 
                 //let's find out the topic on which we have to publish the request
                 District d = SmartCity.getDistrict(startingX, startingY);

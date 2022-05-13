@@ -1,4 +1,4 @@
-package alessio_la_greca_990973.server.datas;
+package alessio_la_greca_990973.server.fortaxi.datas;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
