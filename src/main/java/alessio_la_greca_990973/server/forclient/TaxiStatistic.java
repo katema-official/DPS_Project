@@ -12,11 +12,11 @@ import java.util.List;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class TaxiStatistic {
 
-    private int kilometers;
-    private int rides;
+    protected int kilometers;
+    protected int rides;
     @XmlElement(name = "pullutions")
-    private List<Double> pollutionAverages;
-    private int batteryLevel;
+    protected List<Double> pollutionAverages;
+    protected int batteryLevel;
 
     public TaxiStatistic(){}
 

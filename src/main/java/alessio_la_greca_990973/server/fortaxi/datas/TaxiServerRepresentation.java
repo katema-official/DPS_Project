@@ -6,7 +6,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class TaxiServerRepresentation {
     //class to represent a taxi from the server perspective.
     //this means that this class holds only the informations regarding
-    //a taxi that are of onterest of the server, that is the ID, the
+    //a taxi that are of interest of the server, that is the ID, the
     //ip address and its listening port.
     private int id;
     private String hostname;

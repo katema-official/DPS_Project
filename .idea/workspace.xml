@@ -5,20 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="db07cb2b-569d-4f04-af1c-f7bbfe10a618" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/client/ClientExample.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/6.7/executionHistory/executionHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/executionHistory/executionHistory.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/6.7/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/executionHistory/executionHistory.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/6.7/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/fileHashes/fileHashes.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/6.7/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/fileHashes/fileHashes.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/6.7/javaCompile/classAnalysis.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/javaCompile/classAnalysis.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/6.7/javaCompile/javaCompile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/javaCompile/javaCompile.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/forclient/TaxiStatisticWithTimestamp.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/classes/java/main/alessio_la_greca_990973/seta/RideRequestThread.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/java/main/alessio_la_greca_990973/seta/RideRequestThread.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/tmp/compileJava/source-classes-mapping.txt" beforeDir="false" afterPath="$PROJECT_DIR$/build/tmp/compileJava/source-classes-mapping.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/fortaxi/TaxiRestService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/fortaxi/TaxiRestService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/forclient/TaxiStatistic.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/forclient/TaxiStatistic.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/fortaxi/datas/TaxiRegisteredOnTheServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/fortaxi/datas/TaxiRegisteredOnTheServer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/fortaxi/datas/TaxiReplyToJoin.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/fortaxi/datas/TaxiReplyToJoin.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/fortaxi/datas/TaxiServerRepresentation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/fortaxi/datas/TaxiServerRepresentation.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -150,7 +141,7 @@
       <workItem from="1652453038834" duration="267000" />
       <workItem from="1652454725159" duration="11453000" />
       <workItem from="1652517105184" duration="2265000" />
-      <workItem from="1652519403228" duration="1408000" />
+      <workItem from="1652519403228" duration="9016000" />
     </task>
     <servers />
   </component>
