@@ -12,6 +12,8 @@ import javax.ws.rs.core.Response;
 public class TaxiRestService {
     //rest service for inserting a new taxi
 
+    private final boolean DEBUG_LOCAL = true;
+
     //service used by a taxi to add itself to the smart city
     @Path("join")
     @POST
@@ -57,7 +59,7 @@ public class TaxiRestService {
     @Path("append")
     @POST
     public Response appendStatistic(TaxiStatisticsPacket packet){
-
+        return Response.ok().build();   //TODO
     }
 
 }

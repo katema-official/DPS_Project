@@ -21,15 +21,17 @@ public class TaxiReplyToJoin {
     public TaxiReplyToJoin(int myId){
 
         synchronized (TaxiRegisteredOnTheServer.getInstance()) {
-            currentTaxis = new ArrayList<TaxiServerRepresentation>();
-            Set entrySet = TaxiRegisteredOnTheServer.getInstance().getActualTaxis().entrySet();
-            Iterator it = entrySet.iterator();
+            currentTaxis = TaxiRegisteredOnTheServer.getInstance().getActualTaxis();
+            TaxiServerRepresentation impostor = null;
+            Iterator it = currentTaxis.iterator();
             while (it.hasNext()) {
-                Map.Entry entry = (Map.Entry) it.next();
-                if (!entry.getKey().equals(myId)) {
-                    currentTaxis.add((TaxiServerRepresentation) entry.getValue());
+                TaxiServerRepresentation t = (TaxiServerRepresentation) it.next();
+                if (t.getId() == myId) {
+                    impostor = t;
+                    //I can't remove here the "impostor" since we can't modify a collection while we're iterating it
                 }
             }
+            currentTaxis.remove(impostor);
 
             Random rand = new Random();
             int n = rand.nextInt(2);
