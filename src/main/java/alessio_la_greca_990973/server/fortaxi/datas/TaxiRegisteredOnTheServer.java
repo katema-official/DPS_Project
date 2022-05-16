@@ -83,10 +83,11 @@ public class TaxiRegisteredOnTheServer {
     public boolean add(TaxiServerRepresentation t){
         startTransactionOnTaxiRepresentationWRITER();
 
-        startTransactionOnTaxiStatisticWRITER();
+        startTransactionOnTaxiStatisticSCRIBE();
 
         //at this point, I'm sure that AT MOST one writer is entering this section, and while it is doing so,
         //there are NO readers reading this data structure.
+        //------This code is synchronized thanks to the first lock, startTransactionOnTaxiRepresentationWRITER()-------
         boolean ret;
         int newID = t.getId();
         if(actualTaxis.containsKey(newID)){
@@ -95,8 +96,19 @@ public class TaxiRegisteredOnTheServer {
             actualTaxis.put(newID, t);
             ret = true;
         }
+        //-------------------------------------------------------------------------------------------------------------
 
-        endTransactionOnTaxiStatisticWRITER();
+        //--------This code is synchronized thanks to the second lock, startTransactionOnTaxiStatisticSCRIBE()---------
+        if(ret == true) {
+            //we are creating a new taxi, so we have to create also some support data structures.
+            taxiStatistics.put(t.getId(), new ArrayList<>());
+            readersReadingTaxiStatistics.put(t.getId(), 0);
+            writersWaitingTaxiStatistics.put(t.getId(), 0);
+            writerActiveTaxiStatistics.put(t.getId(), false);
+        }
+        //-------------------------------------------------------------------------------------------------------------
+
+        endTransactionOnTaxiStatisticSCRIBE();
 
         endTransactionOnTaxiRepresentationWRITER();
         return ret;
@@ -106,8 +118,9 @@ public class TaxiRegisteredOnTheServer {
     public boolean delete(int id) {
         startTransactionOnTaxiRepresentationWRITER();
 
-        startTransactionOnTaxiStatisticWRITER();
+        startTransactionOnTaxiStatisticSCRIBE();
 
+        //------This code is synchronized thanks to the first lock, startTransactionOnTaxiRepresentationWRITER()-------
         boolean ret;
         if(actualTaxis.containsKey(id)){
             actualTaxis.remove(id);
@@ -115,25 +128,44 @@ public class TaxiRegisteredOnTheServer {
         }else{
             ret = false;
         }
+        //-------------------------------------------------------------------------------------------------------------
 
-        endTransactionOnTaxiStatisticWRITER();
+        //--------This code is synchronized thanks to the second lock, startTransactionOnTaxiStatisticSCRIBE()---------
+        if(ret == true) {
+            //we are deleting a taxi, so we have to remove all of its data, also the ones of the support data structures.
+            taxiStatistics.remove(id);
+            readersReadingTaxiStatistics.remove(id);
+            writersWaitingTaxiStatistics.remove(id);
+            writerActiveTaxiStatistics.remove(id);
+        }
+        //-------------------------------------------------------------------------------------------------------------
+
+        endTransactionOnTaxiStatisticSCRIBE();
 
         endTransactionOnTaxiRepresentationWRITER();
         return ret;
     }
 
     //FOR THE POST OPERATION THAT ADDS A NEW TAXI STATISTIC (WITH TIMESTAMP) TO THE SERVER
-    public void append(TaxiStatisticsPacket packet){
+    public void append(TaxiStatisticsPacket packet){    //TODO
         //So, if done properly, we can allow a fine-grained synchronization. In fact:
         //1) we could synchronize every operation performed on "taxiStatistic" so that it can be accessed by at most
         //one thread, both when it needs to be written (new statistic from a taxi) and when it needs to be read
         //(from an administrator client). But this isn't very scalable. Instead, we could synchronize the access
-        //to the statistics of one taxi by synchronizing on that key-value. In this way, multiple readers can read
+        //to the statistics of one taxi by synchronizing on that taxi. In this way, multiple readers can read
         //the same values of the same taxi, but only one writer can write on it.
-        int id = packet.getTaxiId();        //TODO: guarda gli appunti degli scribi
-        TaxiStatisticWithTimestamp stat = new TaxiStatisticWithTimestamp(packet.getKilometers(), packet.getRides(),
-                packet.getPollutionAverages(), packet.getBatteryLevel(), packet.getTimestamp());
-        taxiStatistics.get(id).add(stat);
+        int id = packet.getTaxiId();
+
+        //allow = true means that the taxi still exists
+        boolean allow = startTransactionOnTaxiStatisticsWRITER(id);
+
+        if(allow) {
+            TaxiStatisticWithTimestamp stat = new TaxiStatisticWithTimestamp(packet.getKilometers(), packet.getRides(),
+                    packet.getPollutionAverages(), packet.getBatteryLevel(), packet.getTimestamp());
+            taxiStatistics.get(id).add(stat);
+
+            endTransactionOnTaxiStatisticsWRITER(id);
+        }
     }
 
     //[this method is synchronized together with the add() and remove() methods listed above. In particular,
@@ -145,8 +177,6 @@ public class TaxiRegisteredOnTheServer {
     public ArrayList<TaxiServerRepresentation> getActualTaxis(){
         //let's synchronize the access of the readers
         startTransactionOnTaxiRepresentationREADER();
-
-        //TODO: serve anche un startTransactionOnTaxiStatisticREADER() ?
 
         //let's build a list of all the taxis present at the moment on the server
         ArrayList<TaxiServerRepresentation> ret = new ArrayList<TaxiServerRepresentation>();
@@ -164,14 +194,40 @@ public class TaxiRegisteredOnTheServer {
 
     //[this method is synchronized with the append() method above. In particular, this is a reader, the other one
     //is a writer]
-    public TaxiStatistic getLastNStatisticOfTaxi(int id){
-        ArrayList<TaxiStatisticWithTimestamp> selectedArray = taxiStatistics.get(id);
+    public TaxiStatistic getLastNStatisticOfTaxi(int id, int n){
+        boolean allow = startTransactionOnTaxiStatisticsREADER(id);
 
+        if(allow){  //TODO
+            ArrayList<TaxiStatisticWithTimestamp> selectedArray = taxiStatistics.get(id);
 
+            //faccio la media delle statistiche e poi la restituisco
+            TaxiStatistic average = new TaxiStatistic();
+
+            //...fai la media...
+
+            endTransactionOnTaxiStatisticsREADER(id);
+
+            return average;
+        }
+
+        return null;    //the taxi doesn't exist anymore.
     }
 
     public TaxiStatistic getGlobalStatisticsBetweenTimestamps(long t1, long t2){
 
+        TaxiStatistic result = new TaxiStatistic();
+        for (int id : actualTaxis.keySet()) {
+            boolean allow = startTransactionOnTaxiStatisticsREADER(id);
+            if(allow){
+
+                ArrayList<TaxiStatisticWithTimestamp> current = taxiStatistics.get(id);
+
+                //take all the timestamps bw t1 and t2 with binary search, average them, and produce the result.
+
+            }
+        }
+
+        return result;
     }
 
 
@@ -187,6 +243,12 @@ public class TaxiRegisteredOnTheServer {
     //*                                  Methods for synchronizing properly                                           *
     //*****************************************************************************************************************
 
+    //-----------------------------------------------------------------------------------------------------------------
+    //-----------These methods are used for proper synchronization on add(), remove() and getActualTaxis()-------------
+    //--------------or, put in another way, for synchronization on the whole actualTaxis data structure----------------
+    //-----------------------------------------------------------------------------------------------------------------
+
+    //Coarse synchronization on actualTaxis.
     private void startTransactionOnTaxiRepresentationWRITER(){
         synchronized (instance){
             //-------------------synchronization for writes/reads about the current taxis in the system----------------
@@ -215,6 +277,7 @@ public class TaxiRegisteredOnTheServer {
         }
     }
 
+    //Coarse synchronization on actualTaxis
     private void startTransactionOnTaxiRepresentationREADER(){
         synchronized (instance){
             while(writersWaiting > 0){
@@ -236,8 +299,14 @@ public class TaxiRegisteredOnTheServer {
         }
     }
 
+    //-----------------------------------------------------------------------------------------------------------------
+    //---------------These methods are used for proper synchronization on add(), remove(), append(),-------------------
+    //-------------------getLastNStatisticOfTaxi() and getGlobalStatisticsBetweenTimestamps()--------------------------
+    //-------------or, put in another way, for synchronization on the whole taxiStatistics data structure--------------
+    //-----------------------------------------------------------------------------------------------------------------
 
-    private void startTransactionOnTaxiStatisticWRITER(){
+    //Coarse synchronization on taxiStatistics
+    private void startTransactionOnTaxiStatisticSCRIBE(){
         synchronized (globalLock){
             //-----------synchronization for writes/reads about the current taxi STATISTICS in the system--------------
             scribesWaiting++;
@@ -245,18 +314,30 @@ public class TaxiRegisteredOnTheServer {
             boolean isSomeoneWriting = false;
             boolean go = false;
             while(!go) {
-                for (TaxiServerRepresentation taxi : actualTaxis.values()) {
-                    synchronized (taxi) {
-                        readers += readersReadingTaxiStatistics.get(taxi.getId());
-                        isSomeoneWriting |= writerActiveTaxiStatistics.get(taxi.getId());
-                    }
-                }
-                if(scribeActive == true || readers > 0 || isSomeoneWriting == true){
+                //if there is another scribe working, I can already suspend my work and wait for him to complete
+                if(scribeActive == true){
+
                     try {
                         globalLock.wait();
                     } catch (InterruptedException e) {throw new RuntimeException(e);}
-                }else{
-                    go = true;
+
+                }else {
+
+                    for (TaxiServerRepresentation taxi : actualTaxis.values()) {    //I take the fine-grained locks one by one
+                        synchronized (taxi) {
+                            readers += readersReadingTaxiStatistics.get(taxi.getId());
+                            isSomeoneWriting |= writerActiveTaxiStatistics.get(taxi.getId());
+                            //TODO: you could break this for in the very moment readers > 0 || isSomeoneWriting == true
+                        }
+                    }
+                    if (readers > 0 || isSomeoneWriting == true) {
+                        try {
+                            globalLock.wait();
+                        } catch (InterruptedException e) {throw new RuntimeException(e);}
+                    } else {
+                        go = true;
+                    }
+
                 }
             }
             scribeActive = true;
@@ -264,7 +345,7 @@ public class TaxiRegisteredOnTheServer {
         }
     }
 
-    private void endTransactionOnTaxiStatisticWRITER(){
+    private void endTransactionOnTaxiStatisticSCRIBE(){
         synchronized (globalLock){
             //-----------synchronization for writes/reads about the current taxi STATISTICS in the system--------------
             scribesWaiting--;
@@ -274,11 +355,148 @@ public class TaxiRegisteredOnTheServer {
             }else{
                 for (TaxiServerRepresentation taxi : actualTaxis.values()) {
                     synchronized (taxi) {
-                        taxi.notify();
+                        taxi.notifyAll();
                     }
                 }
             }
             //---------------------------------------------------------------------------------------------------------
+        }
+    }
+
+    //fine synchronization on taxiStatistics (writers, or for the append() operation)
+    //the return value is a boolean:
+    //TRUE: the lock was acquired, a new data can be appended to the desired ArrayList
+    //FALSE: the data structure was removed, you can't perform any operation on it
+    private boolean startTransactionOnTaxiStatisticsWRITER(int id){
+        //As a writer, I want exclusive access to the ArrayList of the statistics relative to the taxi with id "id".
+        //but, if there is a scribe waiting, I must yield so that he can execute before me.
+        boolean go = false;
+        while(!go){
+
+            //first, I check if there is a scribe waiting to write.
+            synchronized (globalLock){
+                go = true;
+                if(scribesWaiting > 0){
+                    go = false;
+                }
+            }
+
+            try{
+                TaxiServerRepresentation taxi = actualTaxis.get(id);
+                if(taxi == null) return false;  //a scribe could have already deleted that taxi
+                synchronized (taxi){
+                    if(actualTaxis.containsKey(id)){
+                        if(!go){
+                            try{
+                                taxi.wait(500); //the timeout is necessary because of the interleavings.
+                                //it might happen that:
+                                //1) the writer synchronizes on globalLock, sees that there is at least one scribe, and
+                                //sets go to false.
+                                //2) before the writer enters this if, the scribe performs his operations, and then,
+                                //if it was the last one, he sends a notifyAll() on all taxis. But this writer didn't
+                                //call wait() on this taxi.
+                                //3) this writer calls wait() on this taxi, and waits for a notifyAll() that has already
+                                //happened (so he would have to wait a new scribe to enter).
+                                //
+                                //using the wait, eventually the taxi will be awakened. I mean, in the worst case, the
+                                //writer will wake up, find out that the scribe hasn't finished, and go back to sleep.
+                            }catch(InterruptedException e){e.printStackTrace();}
+                        }else{
+                            //there were no scribes. So this writer can write? NO! He must be sure that there are no
+                            //other writers or readers on this taxi.
+                            int currNumberOfWaitingWriters = writersWaitingTaxiStatistics.get(id);
+                            writersWaitingTaxiStatistics.replace(id, currNumberOfWaitingWriters + 1);
+                            while(writerActiveTaxiStatistics.get(id) == true || readersReadingTaxiStatistics.get(id) > 0){
+                                try {
+                                    taxi.wait();
+                                }catch(InterruptedException e){e.printStackTrace();}
+                            }
+                            writerActiveTaxiStatistics.put(id, true);
+                            //now, and only now, the append can be executed! At this point, in fact, we are sure that
+                            //we have let all the possible scribes pass and that there are no other writers or readers
+                            //in this taxiStatistic's taxi
+                        }
+
+                    }else{
+                        throw new NullPointerException();
+                    }
+                }
+            }catch(NullPointerException e){
+                return false;   //the scribe deleted this taxi, so no append operation can be done
+            }
+
+        }
+        //this is executed only if go = true, that is, if there are no scribes AND (so) the mutual exclusion on this
+        //taxi was granted.
+        return true;
+    }
+
+    private void endTransactionOnTaxiStatisticsWRITER(int id){
+        TaxiServerRepresentation taxi = actualTaxis.get(id);
+        synchronized (taxi) {
+            int tmp = writersWaitingTaxiStatistics.get(id);
+            writersWaitingTaxiStatistics.put(id, tmp - 1);
+            writerActiveTaxiStatistics.put(id, false);
+            taxi.notifyAll();
+        }
+    }
+
+    private boolean startTransactionOnTaxiStatisticsREADER(int id){
+        boolean go = false;
+        while(!go){
+
+            //first, I check if there is a scribe waiting to write.
+            synchronized (globalLock){
+                go = true;
+                if(scribesWaiting > 0){
+                    go = false;
+                }
+            }
+
+            try{
+                TaxiServerRepresentation taxi = actualTaxis.get(id);
+                if(taxi == null) return false;
+                synchronized (taxi){
+                    if(actualTaxis.containsKey(id)){
+                        if(!go){
+                            try{
+                                taxi.wait(500);
+                            }catch(InterruptedException e){e.printStackTrace();}
+                        }else{
+                            //there were no scribes. So this reader can read? NO! He must be sure that there are no
+                            //writers on this taxi.
+                            while(writersWaitingTaxiStatistics.get(id) > 0){
+                                try {
+                                    taxi.wait();
+                                }catch(InterruptedException e){e.printStackTrace();}
+                            }
+                            int tmp = readersReadingTaxiStatistics.get(id);
+                            readersReadingTaxiStatistics.put(id, tmp + 1);
+                            //now, and only now, the append can be executed! At this point, in fact, we are sure that
+                            //we have let all the possible scribes pass and that there are no other writers or readers
+                            //in this taxiStatistic's taxi
+                        }
+
+                    }else{
+                        throw new NullPointerException();
+                    }
+                }
+            }catch(NullPointerException e){
+                return false;   //the scribe deleted this taxi, so no append operation can be done
+            }
+
+        }
+        //this is executed only if go = true, that is, if there are no scribes AND (so) the mutual exclusion on this
+        //taxi was granted.
+        return true;
+    }
+
+    private void endTransactionOnTaxiStatisticsREADER(int id){
+        TaxiServerRepresentation taxi = actualTaxis.get(id);
+        synchronized (taxi) {
+            int tmp = readersReadingTaxiStatistics.get(id);
+            readersReadingTaxiStatistics.put(id, tmp - 1);
+            taxi.notifyAll();
         }
     }
 
