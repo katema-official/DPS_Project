@@ -195,6 +195,8 @@ public class TaxiRegisteredOnTheServer {
     //[this method is synchronized with the append() method above. In particular, this is a reader, the other one
     //is a writer]
     public TaxiStatistic getLastNStatisticOfTaxi(int id, int n){
+        if(n == 0) return null;
+
         boolean allow = startTransactionOnTaxiStatisticsREADER(id);
 
         if(allow){  //TODO
@@ -202,8 +204,30 @@ public class TaxiRegisteredOnTheServer {
 
             //faccio la media delle statistiche e poi la restituisco
             TaxiStatistic average = new TaxiStatistic();
+            int sumKilometers = 0;
+            int sumRides = 0;
+            ArrayList<Double> pollutionsTotal = new ArrayList<>();
+            int sumBattery = 0;
 
             //...fai la media...
+            int len = selectedArray.size();
+            n = n < len ? n : len;
+            for(int offset = len - n; offset < len; offset++){
+                TaxiStatisticWithTimestamp current = selectedArray.get(offset);
+                sumKilometers += current.getKilometers();
+                sumRides = current.getRides();
+                pollutionsTotal.addAll(current.getPollutionAverages());
+                sumBattery += current.getBatteryLevel();
+            }
+
+            average.setKilometers(sumKilometers / n);
+            average.setRides(sumRides / n);
+            int totalSumPollutions = 0;
+            for(Double d : pollutionsTotal){
+                totalSumPollutions += d;
+            }
+            average.setPollutionAverage(totalSumPollutions / (double) pollutionsTotal.size());
+            average.setBatteryLevel(sumBattery / n);
 
             endTransactionOnTaxiStatisticsREADER(id);
 
@@ -223,7 +247,7 @@ public class TaxiRegisteredOnTheServer {
                 ArrayList<TaxiStatisticWithTimestamp> current = taxiStatistics.get(id);
 
                 //take all the timestamps bw t1 and t2 with binary search, average them, and produce the result.
-
+                int t1_index = binarySearch(current, t1);
             }
         }
 

@@ -15,15 +15,15 @@ public class TaxiStatistic {
     protected int kilometers;
     protected int rides;
     @XmlElement(name = "pullutions")
-    protected List<Double> pollutionAverages;
+    protected double pollutionAverage;
     protected int batteryLevel;
 
     public TaxiStatistic(){}
 
-    public TaxiStatistic(int kilometers, int rides, List<Double> pollutionAverages, int batteryLevel){
+    public TaxiStatistic(int kilometers, int rides, double pollutionAverage, int batteryLevel){
         this.kilometers = kilometers;
         this.rides = rides;
-        this.pollutionAverages = pollutionAverages;
+        this.pollutionAverage = pollutionAverage;
         this.batteryLevel = batteryLevel;
     }
 
@@ -43,12 +43,12 @@ public class TaxiStatistic {
         this.rides = rides;
     }
 
-    public List<Double> getPollutionAverages() {
-        return pollutionAverages;
+    public double getPollutionAverage() {
+        return pollutionAverage;
     }
 
-    public void setPollutionAverages(List<Double> pollutionAverages) {
-        this.pollutionAverages = pollutionAverages;
+    public void setPollutionAverage(double pollutionAverage) {
+        this.pollutionAverage = pollutionAverage;
     }
 
     public int getBatteryLevel() {
