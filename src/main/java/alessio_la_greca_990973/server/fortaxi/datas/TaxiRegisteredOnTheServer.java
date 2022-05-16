@@ -10,6 +10,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.*;
+import java.lang.Math;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -147,7 +148,7 @@ public class TaxiRegisteredOnTheServer {
     }
 
     //FOR THE POST OPERATION THAT ADDS A NEW TAXI STATISTIC (WITH TIMESTAMP) TO THE SERVER
-    public void append(TaxiStatisticsPacket packet){    //TODO
+    public boolean append(TaxiStatisticsPacket packet){
         //So, if done properly, we can allow a fine-grained synchronization. In fact:
         //1) we could synchronize every operation performed on "taxiStatistic" so that it can be accessed by at most
         //one thread, both when it needs to be written (new statistic from a taxi) and when it needs to be read
@@ -158,13 +159,17 @@ public class TaxiRegisteredOnTheServer {
 
         //allow = true means that the taxi still exists
         boolean allow = startTransactionOnTaxiStatisticsWRITER(id);
-
+        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL) System.out.println("allowed to put data in taxi " + id + "? " + allow);
         if(allow) {
             TaxiStatisticWithTimestamp stat = new TaxiStatisticWithTimestamp(packet.getKilometers(), packet.getRides(),
                     packet.getPollutionAverages(), packet.getBatteryLevel(), packet.getTimestamp());
             taxiStatistics.get(id).add(stat);
 
             endTransactionOnTaxiStatisticsWRITER(id);
+
+            return true;    //the append was successful
+        }else{
+            return false;
         }
     }
 
@@ -199,7 +204,7 @@ public class TaxiRegisteredOnTheServer {
 
         boolean allow = startTransactionOnTaxiStatisticsREADER(id);
 
-        if(allow){  //TODO
+        if(allow){
             ArrayList<TaxiStatisticWithTimestamp> selectedArray = taxiStatistics.get(id);
 
             //faccio la media delle statistiche e poi la restituisco
@@ -209,7 +214,6 @@ public class TaxiRegisteredOnTheServer {
             ArrayList<Double> pollutionsTotal = new ArrayList<>();
             int sumBattery = 0;
 
-            //...fai la media...
             int len = selectedArray.size();
             n = n < len ? n : len;
             for(int offset = len - n; offset < len; offset++){
@@ -222,7 +226,7 @@ public class TaxiRegisteredOnTheServer {
 
             average.setKilometers(sumKilometers / n);
             average.setRides(sumRides / n);
-            int totalSumPollutions = 0;
+            double totalSumPollutions = 0;
             for(Double d : pollutionsTotal){
                 totalSumPollutions += d;
             }
@@ -237,10 +241,11 @@ public class TaxiRegisteredOnTheServer {
         return null;    //the taxi doesn't exist anymore.
     }
 
-    public TaxiStatistic getGlobalStatisticsBetweenTimestamps(long t1, long t2){
+    public TaxiStatistic getGlobalStatisticsBetweenTimestamps(double t1, double t2){
 
         TaxiStatistic result = new TaxiStatistic();
-        for (int id : actualTaxis.keySet()) {
+        ArrayList<TaxiStatistic> averagesList = new ArrayList<>();
+        for (int id : actualTaxis.keySet()){
             boolean allow = startTransactionOnTaxiStatisticsREADER(id);
             if(allow){
 
@@ -248,9 +253,58 @@ public class TaxiRegisteredOnTheServer {
 
                 //take all the timestamps bw t1 and t2 with binary search, average them, and produce the result.
                 int t1_index = binarySearch(current, t1);
+
+                TaxiStatistic average = new TaxiStatistic();
+                int sumKilometers = 0;
+                int sumRides = 0;
+                ArrayList<Double> pollutionsTotal = new ArrayList<>();
+                int sumBattery = 0;
+
+                int n = 0;
+
+                while(t1_index < current.size() && current.get(t1_index).getTimestamp() <= t2){
+                    sumKilometers += current.get(t1_index).getKilometers();
+                    sumRides = current.get(t1_index).getRides();
+                    pollutionsTotal.addAll(current.get(t1_index).getPollutionAverages());
+                    sumBattery += current.get(t1_index).getBatteryLevel();
+
+                    n++;
+                    t1_index++;
+
+                }
+
+                if(n > 0) {     //if there were no statistics between t1 and t2, this code is skipped.
+                    TaxiStatistic stat = new TaxiStatistic();
+                    stat.setKilometers(sumKilometers / n);
+                    stat.setRides(sumRides / n);
+                    double totalSumPollutions = 0;
+                    for (Double d : pollutionsTotal) {
+                        totalSumPollutions += d;
+                    }
+                    stat.setPollutionAverage(totalSumPollutions / (double) pollutionsTotal.size());
+                    stat.setBatteryLevel(sumBattery / n);
+
+                    averagesList.add(stat);
+                }
+                endTransactionOnTaxiStatisticsREADER(id);
             }
         }
 
+        int sumKilometers = 0;
+        int sumRides = 0;
+        double pollutionsTotal = 0D;
+        int sumBattery = 0;
+        for(TaxiStatistic ts : averagesList){
+            sumKilometers += ts.getKilometers();
+            sumRides += ts.getRides();
+            pollutionsTotal += ts.getPollutionAverage();
+            sumBattery += ts.getBatteryLevel();
+        }
+
+        result.setKilometers(sumKilometers / averagesList.size());
+        result.setRides(sumRides / averagesList.size());
+        result.setPollutionAverage(pollutionsTotal / averagesList.size());
+        result.setBatteryLevel(sumBattery / averagesList.size());
         return result;
     }
 
@@ -260,7 +314,25 @@ public class TaxiRegisteredOnTheServer {
         this.actualTaxis = actualTaxis;
     }
 
+    private int binarySearch(ArrayList<TaxiStatisticWithTimestamp> list, double t1){
 
+        int max = list.size() - 1;
+        int min = 0;
+
+        while(max - min != 1){
+            int middle = min + (max - min)/2;
+            double current_value = list.get(middle).getTimestamp();
+            if(current_value >= t1){
+                max = middle;
+            }else{
+                min = middle;
+            }
+        }
+
+        if(list.get(min).getTimestamp() >= t1) return min;
+        return max;
+
+    }
 
 
     //*****************************************************************************************************************

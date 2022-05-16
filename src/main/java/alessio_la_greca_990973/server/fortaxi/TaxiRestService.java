@@ -59,7 +59,9 @@ public class TaxiRestService {
     @Path("append")
     @POST
     public Response appendStatistic(TaxiStatisticsPacket packet){
-        return Response.ok().build();   //TODO
+        boolean success = TaxiRegisteredOnTheServer.getInstance().append(packet);
+        if(success) return Response.ok().build();
+        return Response.status(Response.Status.NOT_FOUND).build();
     }
 
 }
