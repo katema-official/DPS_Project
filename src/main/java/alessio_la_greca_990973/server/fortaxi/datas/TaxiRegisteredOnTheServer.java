@@ -106,6 +106,7 @@ public class TaxiRegisteredOnTheServer {
             readersReadingTaxiStatistics.put(t.getId(), 0);
             writersWaitingTaxiStatistics.put(t.getId(), 0);
             writerActiveTaxiStatistics.put(t.getId(), false);
+            if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL) System.out.println("Taxi " + t.getId() + " joined the city");
         }
         //-------------------------------------------------------------------------------------------------------------
 
@@ -138,6 +139,7 @@ public class TaxiRegisteredOnTheServer {
             readersReadingTaxiStatistics.remove(id);
             writersWaitingTaxiStatistics.remove(id);
             writerActiveTaxiStatistics.remove(id);
+            if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL) System.out.println("Taxi " + id + " left the city");
         }
         //-------------------------------------------------------------------------------------------------------------
 
@@ -205,7 +207,10 @@ public class TaxiRegisteredOnTheServer {
         boolean allow = startTransactionOnTaxiStatisticsREADER(id);
 
         if(allow){
-            ArrayList<TaxiStatisticWithTimestamp> selectedArray = taxiStatistics.get(id);
+            ArrayList<TaxiStatisticWithTimestamp> selectedArray =
+                    new ArrayList<TaxiStatisticWithTimestamp>(taxiStatistics.get(id));
+
+            endTransactionOnTaxiStatisticsREADER(id);
 
             //faccio la media delle statistiche e poi la restituisco
             TaxiStatistic average = new TaxiStatistic();
@@ -219,7 +224,7 @@ public class TaxiRegisteredOnTheServer {
             for(int offset = len - n; offset < len; offset++){
                 TaxiStatisticWithTimestamp current = selectedArray.get(offset);
                 sumKilometers += current.getKilometers();
-                sumRides = current.getRides();
+                sumRides += current.getRides();
                 pollutionsTotal.addAll(current.getPollutionAverages());
                 sumBattery += current.getBatteryLevel();
             }
@@ -232,8 +237,6 @@ public class TaxiRegisteredOnTheServer {
             }
             average.setPollutionAverage(totalSumPollutions / (double) pollutionsTotal.size());
             average.setBatteryLevel(sumBattery / n);
-
-            endTransactionOnTaxiStatisticsREADER(id);
 
             return average;
         }
@@ -249,8 +252,10 @@ public class TaxiRegisteredOnTheServer {
             boolean allow = startTransactionOnTaxiStatisticsREADER(id);
             if(allow){
 
-                ArrayList<TaxiStatisticWithTimestamp> current = taxiStatistics.get(id);
+                ArrayList<TaxiStatisticWithTimestamp> current =
+                        new ArrayList<TaxiStatisticWithTimestamp>(taxiStatistics.get(id));
 
+                endTransactionOnTaxiStatisticsREADER(id);
                 //take all the timestamps bw t1 and t2 with binary search, average them, and produce the result.
                 int t1_index = binarySearch(current, t1);
 
@@ -264,7 +269,7 @@ public class TaxiRegisteredOnTheServer {
 
                 while(t1_index < current.size() && current.get(t1_index).getTimestamp() <= t2){
                     sumKilometers += current.get(t1_index).getKilometers();
-                    sumRides = current.get(t1_index).getRides();
+                    sumRides += current.get(t1_index).getRides();
                     pollutionsTotal.addAll(current.get(t1_index).getPollutionAverages());
                     sumBattery += current.get(t1_index).getBatteryLevel();
 
@@ -286,7 +291,7 @@ public class TaxiRegisteredOnTheServer {
 
                     averagesList.add(stat);
                 }
-                endTransactionOnTaxiStatisticsREADER(id);
+
             }
         }
 
@@ -301,11 +306,14 @@ public class TaxiRegisteredOnTheServer {
             sumBattery += ts.getBatteryLevel();
         }
 
-        result.setKilometers(sumKilometers / averagesList.size());
-        result.setRides(sumRides / averagesList.size());
-        result.setPollutionAverage(pollutionsTotal / averagesList.size());
-        result.setBatteryLevel(sumBattery / averagesList.size());
-        return result;
+        if(averagesList.size() >= 1) {
+            result.setKilometers(sumKilometers / averagesList.size());
+            result.setRides(sumRides / averagesList.size());
+            result.setPollutionAverage(pollutionsTotal / averagesList.size());
+            result.setBatteryLevel(sumBattery / averagesList.size());
+            return result;
+        }
+        return null;
     }
 
 
@@ -320,6 +328,7 @@ public class TaxiRegisteredOnTheServer {
         int min = 0;
 
         while(max - min != 1){
+            if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL) System.out.println("min = " + min + ", max = " + max);
             int middle = min + (max - min)/2;
             double current_value = list.get(middle).getTimestamp();
             if(current_value >= t1){
