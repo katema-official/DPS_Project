@@ -36,7 +36,7 @@ public class ClientRestService {
     @Path("timestamps/{t1}/{t2}")
     @GET
     @Produces({"application/json", "application/xml"})
-    public Response getStatisticsBetweenTimestamps(@PathParam("t1") int t1, @PathParam("t2") int t2){
+    public Response getStatisticsBetweenTimestamps(@PathParam("t1") double t1, @PathParam("t2") double t2){
         TaxiStatistic ts = TaxiRegisteredOnTheServer.getInstance().getGlobalStatisticsBetweenTimestamps(t1, t2);
         return Response.ok(ts).build();
     }

@@ -13,28 +13,28 @@ ride/request/RideRequestMessageOuterClass.java
  ride.request.RideRequestMessageOuterClass$RideRequestMessage$1
  ride.request.RideRequestMessageOuterClass$RideRequestMessage$Builder
  ride.request.RideRequestMessageOuterClass$RideRequestMessageOrBuilder
-alessio_la_greca_990973/client/AdministratorClient.java
- alessio_la_greca_990973.client.AdministratorClient
+alessio_la_greca_990973/smart_city/District.java
+ alessio_la_greca_990973.smart_city.District
 alessio_la_greca_990973/simulator/Simulator.java
  alessio_la_greca_990973.simulator.Simulator
 alessio_la_greca_990973/smart_city/SmartCity.java
  alessio_la_greca_990973.smart_city.SmartCity
-alessio_la_greca_990973/client/ClientExample.java
- alessio_la_greca_990973.client.ClientExample
+alessio_la_greca_990973/server/fortaxi/datas/TaxiReplyToJoin.java
+ alessio_la_greca_990973.server.fortaxi.datas.TaxiReplyToJoin
 alessio_la_greca_990973/smart_city/taxi/Taxi.java
  alessio_la_greca_990973.smart_city.taxi.Taxi
 Main.java
  Main
 alessio_la_greca_990973/seta/Seta.java
  alessio_la_greca_990973.seta.Seta
-alessio_la_greca_990973/smart_city/District.java
- alessio_la_greca_990973.smart_city.District
+alessio_la_greca_990973/server/fortaxi/datas/TaxiRegisteredOnTheServer.java
+ alessio_la_greca_990973.server.fortaxi.datas.TaxiRegisteredOnTheServer
 alessio_la_greca_990973/server/forclient/TaxiStatistic.java
  alessio_la_greca_990973.server.forclient.TaxiStatistic
 alessio_la_greca_990973/simulator/Measurement.java
  alessio_la_greca_990973.simulator.Measurement
-alessio_la_greca_990973/server/fortaxi/datas/statistics/TaxiStatisticsPacket.java
- alessio_la_greca_990973.server.fortaxi.datas.statistics.TaxiStatisticsPacket
+alessio_la_greca_990973/server/fortaxi/TaxiRestService.java
+ alessio_la_greca_990973.server.fortaxi.TaxiRestService
 alessio_la_greca_990973/smart_city/taxi/SubscriberExample.java
  alessio_la_greca_990973.smart_city.taxi.SubscriberExample
  alessio_la_greca_990973.smart_city.taxi.SubscriberExample$1
@@ -44,11 +44,12 @@ alessio_la_greca_990973/server/AdministratorServer.java
  alessio_la_greca_990973.server.AdministratorServer
 alessio_la_greca_990973/server/forclient/TaxiStatisticWithTimestamp.java
  alessio_la_greca_990973.server.forclient.TaxiStatisticWithTimestamp
-alessio_la_greca_990973/server/fortaxi/datas/TaxiRegisteredOnTheServer.java
- alessio_la_greca_990973.server.fortaxi.datas.TaxiRegisteredOnTheServer
-alessio_la_greca_990973/server/fortaxi/TaxiRestService.java
- alessio_la_greca_990973.server.fortaxi.TaxiRestService
-alessio_la_greca_990973/server/fortaxi/datas/TaxiReplyToJoin.java
- alessio_la_greca_990973.server.fortaxi.datas.TaxiReplyToJoin
+alessio_la_greca_990973/server/fortaxi/datas/statistics/TaxiStatisticsPacket.java
+ alessio_la_greca_990973.server.fortaxi.datas.statistics.TaxiStatisticsPacket
+alessio_la_greca_990973/client/ClientExample.java
+ alessio_la_greca_990973.client.ClientExample
 alessio_la_greca_990973/server/fortaxi/ClientRestService.java
  alessio_la_greca_990973.server.fortaxi.ClientRestService
+alessio_la_greca_990973/client/AdministratorClient.java
+ alessio_la_greca_990973.client.AdministratorClient
+ alessio_la_greca_990973.client.AdministratorClient$1
