@@ -14,7 +14,7 @@ public class TaxiStatistic {
 
     protected int kilometers;
     protected int rides;
-    @XmlElement(name = "pullutions")
+    @XmlElement(name = "pollutions")
     protected double pollutionAverage;
     protected int batteryLevel;
 

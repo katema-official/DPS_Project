@@ -158,10 +158,11 @@ public class TaxiRegisteredOnTheServer {
         //to the statistics of one taxi by synchronizing on that taxi. In this way, multiple readers can read
         //the same values of the same taxi, but only one writer can write on it.
         int id = packet.getTaxiId();
+        debug("id = " + id);
 
         //allow = true means that the taxi still exists
         boolean allow = startTransactionOnTaxiStatisticsWRITER(id);
-        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL) System.out.println("allowed to put data in taxi " + id + "? " + allow);
+        debug("allowed to put data in taxi " + id + "? " + allow);
         if(allow) {
             TaxiStatisticWithTimestamp stat = new TaxiStatisticWithTimestamp(packet.getKilometers(), packet.getRides(),
                     packet.getPollutionAverages(), packet.getBatteryLevel(), packet.getTimestamp());
@@ -603,6 +604,13 @@ public class TaxiRegisteredOnTheServer {
             readersReadingTaxiStatistics.put(id, tmp - 1);
             taxi.notifyAll();
         }
+    }
+
+
+    //--------------for debuggingpurposes------------
+    private void debug(String message){
+        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL) System.out.println(message);
+
     }
 
 }

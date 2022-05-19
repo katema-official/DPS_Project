@@ -127,24 +127,42 @@ public class AdministratorClient {
     private static void printTaxis(Client client){
         ClientResponse clientResponse = getTaxis(client);
         String json = clientResponse.getEntity(String.class);
-        System.out.println("taxis: \n" + json);
         Type listType = new TypeToken<ArrayList<TaxiServerRepresentation>>() {}.getType();
         ArrayList<TaxiServerRepresentation> taxis = new Gson().fromJson(json, listType);
+        System.out.println("Here are all the taxis present at the moment in the city:");
         for(TaxiServerRepresentation taxi: taxis){
-            System.out.println("taxi: " + taxi.getId() + " " + taxi.getHostname() + " " + taxi.getListeningPort());
+            System.out.println("id: " + taxi.getId() + ", hostname: " + taxi.getHostname() + ", port: " + taxi.getListeningPort());
         }
     }
 
     private static void printStatistics(Client client, int id, int n){
         ClientResponse clientResponse = getStatistics(client, id, n);
         String json = clientResponse.getEntity(String.class);
-        System.out.println("statistics: \n" + json);
+        TaxiStatistic stats = new Gson().fromJson(json, TaxiStatistic.class);
+        if(stats != null){
+            System.out.println("Here is the average of the last " + n + " statistics of taxi " + id + ":");
+            System.out.println("Kilometers: " + stats.getKilometers());
+            System.out.println("Battery level: " + stats.getBatteryLevel());
+            System.out.println("Pollution level: " + stats.getPollutionAverage());
+            System.out.println("Rides: " + stats.getRides());
+        }else{
+            System.out.println("The required taxi is not present. Type \"taxis\" to get the list of all the taxis in the city");
+        }
     }
 
     private static void printTimestamps(Client client, double t1, double t2){
         ClientResponse clientResponse = getTimestamps(client, t1, t2);
         String json = clientResponse.getEntity(String.class);
-        System.out.println("timestamps: \n" + json);
+        TaxiStatistic stats = new Gson().fromJson(json, TaxiStatistic.class);
+        if(stats != null) {
+            System.out.println("Here is the average of all the statistics happened between timestamp " + t1 + " and timestamp " + t2 + ":");
+            System.out.println("Kilometers: " + stats.getKilometers());
+            System.out.println("Battery level: " + stats.getBatteryLevel());
+            System.out.println("Pollution level: " + stats.getPollutionAverage());
+            System.out.println("Rides: " + stats.getRides());
+        }else{
+            System.out.println("Seems like there were no statistics between timestamp " + t1 + " and timestamp " + t2);
+        }
     }
 
 }

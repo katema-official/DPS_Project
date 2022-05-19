@@ -12,15 +12,15 @@ public class TaxiStatisticsPacket {
 
     private int kilometers;
     private int rides;
-    @XmlElement(name = "pullutions")
+    @XmlElement(name = "pollutionAverages")
     private List<Double> pollutionAverages;
     private int taxiId;
-    private long timestamp;
+    private double timestamp;
     private int batteryLevel;
 
     public TaxiStatisticsPacket(){}
 
-    public TaxiStatisticsPacket(int kilometers, int rides, List<Double> pollutionAverages, int taxiId, long timestamp, int batteryLevel){
+    public TaxiStatisticsPacket(int kilometers, int rides, List<Double> pollutionAverages, int taxiId, double timestamp, int batteryLevel){
         this.kilometers = kilometers;
         this.rides = rides;
         this.pollutionAverages = pollutionAverages;
@@ -61,11 +61,11 @@ public class TaxiStatisticsPacket {
         this.taxiId = taxiId;
     }
 
-    public long getTimestamp() {
+    public double getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(long timestamp) {
+    public void setTimestamp(double timestamp) {
         this.timestamp = timestamp;
     }
 

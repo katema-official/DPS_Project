@@ -1,5 +1,6 @@
 package alessio_la_greca_990973.server.fortaxi;
 
+import alessio_la_greca_990973.commons.Commons;
 import alessio_la_greca_990973.server.fortaxi.datas.TaxiRegisteredOnTheServer;
 import alessio_la_greca_990973.server.fortaxi.datas.TaxiReplyToJoin;
 import alessio_la_greca_990973.server.fortaxi.datas.TaxiServerRepresentation;
@@ -59,9 +60,17 @@ public class TaxiRestService {
     @Path("append")
     @POST
     public Response appendStatistic(TaxiStatisticsPacket packet){
+        debug("packet sending...");
         boolean success = TaxiRegisteredOnTheServer.getInstance().append(packet);
         if(success) return Response.ok().build();
+        debug("response is not ok");
         return Response.status(Response.Status.NOT_FOUND).build();
+    }
+
+    private void debug(String message){
+        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL){
+            System.out.println(message);
+        }
     }
 
 }
