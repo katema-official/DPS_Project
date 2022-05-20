@@ -1,4 +1,4 @@
-package alessio_la_greca_990973.smart_city.taxi;
+package alessio_la_greca_990973.smart_city.taxi.example;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.eclipse.paho.client.mqttv3.*;

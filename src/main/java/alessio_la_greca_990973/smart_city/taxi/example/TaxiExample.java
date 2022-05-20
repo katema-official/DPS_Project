@@ -1,4 +1,4 @@
-package alessio_la_greca_990973.smart_city.taxi;
+package alessio_la_greca_990973.smart_city.taxi.example;
 
 import alessio_la_greca_990973.server.fortaxi.datas.TaxiServerRepresentation;
 import alessio_la_greca_990973.server.fortaxi.datas.statistics.TaxiStatisticsPacket;

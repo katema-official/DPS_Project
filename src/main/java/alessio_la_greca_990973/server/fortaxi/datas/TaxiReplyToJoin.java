@@ -10,7 +10,7 @@ import java.util.*;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class TaxiReplyToJoin {
 
-    @XmlElement(name = "otherTaxis")
+    @XmlElement(name = "currentTaxis")
     List<TaxiServerRepresentation> currentTaxis;
 
     private int startingX;

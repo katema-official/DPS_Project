@@ -68,7 +68,6 @@ public class RideRequestThread implements Runnable{
                 do {
                     startingX = SmartCity.generateRandomXInsideSmartCity();
                     startingY = SmartCity.generateRandomYInsideSmartCity();
-                    //devono essere diversi
                     arrivingX = SmartCity.generateRandomXInsideSmartCity();
                     arrivingY = SmartCity.generateRandomYInsideSmartCity();
                 }while(startingX == arrivingX && startingY == arrivingY);
@@ -98,9 +97,9 @@ public class RideRequestThread implements Runnable{
 
                 Thread.sleep(requestDelay - millis);
 
-                if(Commons.DEBUG_GLOBAL && RideRequestThread.DEBUG_LOCAL){
-                    System.out.println("Cycle ended after publishing requst number " + ID + ". Restarting...");
-                }
+
+                debug("Cycle ended after publishing requst number " + ID + ". Restarting...");
+
 
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -109,6 +108,12 @@ public class RideRequestThread implements Runnable{
             } catch (MqttException e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    private void debug(String message){
+        if(Commons.DEBUG_GLOBAL && RideRequestThread.DEBUG_LOCAL){
+            System.out.println("message");
         }
     }
 }

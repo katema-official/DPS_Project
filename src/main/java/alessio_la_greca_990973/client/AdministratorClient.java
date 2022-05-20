@@ -1,5 +1,6 @@
 package alessio_la_greca_990973.client;
 
+import alessio_la_greca_990973.commons.Commons;
 import alessio_la_greca_990973.server.forclient.TaxiStatistic;
 import alessio_la_greca_990973.server.fortaxi.datas.TaxiServerRepresentation;
 import com.google.gson.Gson;
@@ -17,6 +18,8 @@ import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 
 public class AdministratorClient {
+
+    private static boolean DEBUG_LOCAL = true;
     public static void main(String args[]){
 
         Client client = Client.create();
@@ -30,7 +33,7 @@ public class AdministratorClient {
             reader = new BufferedReader(new InputStreamReader(System.in));
             try {
                 line = reader.readLine();
-                System.out.println("line = " + line);
+                debug("line = " + line);
             } catch (IOException e) {e.printStackTrace();}
 
             if(line.equals("help")) {
@@ -57,6 +60,8 @@ public class AdministratorClient {
                         }else{
                             printTimestamps(client, t1, t2);
                         }
+                    }else{
+                        System.out.println("Command not recognized. Type \"help\" to get the list of all available commands");
                     }
                 }else{
                     break;
@@ -163,6 +168,11 @@ public class AdministratorClient {
         }else{
             System.out.println("Seems like there were no statistics between timestamp " + t1 + " and timestamp " + t2);
         }
+    }
+
+    private static void debug(String message){
+        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL) System.out.println(message);
+
     }
 
 }
