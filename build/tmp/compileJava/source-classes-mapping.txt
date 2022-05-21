@@ -1,3 +1,14 @@
+taxis/welcome/WelcomeServiceGrpc.java
+ taxis.welcome.WelcomeServiceGrpc
+ taxis.welcome.WelcomeServiceGrpc$1
+ taxis.welcome.WelcomeServiceGrpc$MethodHandlers
+ taxis.welcome.WelcomeServiceGrpc$WelcomeServiceBaseDescriptorSupplier
+ taxis.welcome.WelcomeServiceGrpc$WelcomeServiceBlockingStub
+ taxis.welcome.WelcomeServiceGrpc$WelcomeServiceFileDescriptorSupplier
+ taxis.welcome.WelcomeServiceGrpc$WelcomeServiceFutureStub
+ taxis.welcome.WelcomeServiceGrpc$WelcomeServiceImplBase
+ taxis.welcome.WelcomeServiceGrpc$WelcomeServiceMethodDescriptorSupplier
+ taxis.welcome.WelcomeServiceGrpc$WelcomeServiceStub
 alessio_la_greca_990973/commons/Commons.java
  alessio_la_greca_990973.commons.Commons
 alessio_la_greca_990973/simulator/Buffer.java
@@ -9,8 +20,8 @@ alessio_la_greca_990973/simulator/Simulator.java
  alessio_la_greca_990973.simulator.Simulator
 alessio_la_greca_990973/smart_city/SmartCity.java
  alessio_la_greca_990973.smart_city.SmartCity
-alessio_la_greca_990973/server/AdministratorServer.java
- alessio_la_greca_990973.server.AdministratorServer
+alessio_la_greca_990973/server/fortaxi/datas/TaxiReplyToJoin.java
+ alessio_la_greca_990973.server.fortaxi.datas.TaxiReplyToJoin
 Main.java
  Main
 alessio_la_greca_990973/server/forclient/TaxiStatistic.java
@@ -39,6 +50,8 @@ ride/request/RideRequestMessageOuterClass.java
  ride.request.RideRequestMessageOuterClass$RideRequestMessage$1
  ride.request.RideRequestMessageOuterClass$RideRequestMessage$Builder
  ride.request.RideRequestMessageOuterClass$RideRequestMessageOrBuilder
+alessio_la_greca_990973/server/fortaxi/datas/statistics/TaxiStatisticsPacket.java
+ alessio_la_greca_990973.server.fortaxi.datas.statistics.TaxiStatisticsPacket
 alessio_la_greca_990973/smart_city/taxi/example/TaxiExample.java
  alessio_la_greca_990973.smart_city.taxi.example.TaxiExample
 alessio_la_greca_990973/server/forclient/TaxiStatisticWithTimestamp.java
@@ -47,12 +60,25 @@ alessio_la_greca_990973/seta/Seta.java
  alessio_la_greca_990973.seta.Seta
 alessio_la_greca_990973/server/fortaxi/datas/TaxiRegisteredOnTheServer.java
  alessio_la_greca_990973.server.fortaxi.datas.TaxiRegisteredOnTheServer
-alessio_la_greca_990973/server/fortaxi/datas/statistics/TaxiStatisticsPacket.java
- alessio_la_greca_990973.server.fortaxi.datas.statistics.TaxiStatisticsPacket
 alessio_la_greca_990973/server/fortaxi/TaxiRestService.java
  alessio_la_greca_990973.server.fortaxi.TaxiRestService
-alessio_la_greca_990973/server/fortaxi/datas/TaxiReplyToJoin.java
- alessio_la_greca_990973.server.fortaxi.datas.TaxiReplyToJoin
+alessio_la_greca_990973/server/AdministratorServer.java
+ alessio_la_greca_990973.server.AdministratorServer
+taxis/welcome/WelcomeTaxiService.java
+ taxis.welcome.WelcomeTaxiService
+ taxis.welcome.WelcomeTaxiService$1
+ taxis.welcome.WelcomeTaxiService$NewTaxiPresentation
+ taxis.welcome.WelcomeTaxiService$NewTaxiPresentation$1
+ taxis.welcome.WelcomeTaxiService$NewTaxiPresentation$Builder
+ taxis.welcome.WelcomeTaxiService$NewTaxiPresentationOrBuilder
+ taxis.welcome.WelcomeTaxiService$OldTaxiPresentation
+ taxis.welcome.WelcomeTaxiService$OldTaxiPresentation$1
+ taxis.welcome.WelcomeTaxiService$OldTaxiPresentation$Builder
+ taxis.welcome.WelcomeTaxiService$OldTaxiPresentationOrBuilder
+alessio_la_greca_990973/smart_city/taxi/TaxiTaxiRepresentation.java
+ alessio_la_greca_990973.smart_city.taxi.TaxiTaxiRepresentation
+alessio_la_greca_990973/smart_city/taxi/rpcservices/WelcomeServiceImpl.java
+ alessio_la_greca_990973.smart_city.taxi.rpcservices.WelcomeServiceImpl
 alessio_la_greca_990973/smart_city/taxi/TaxiMain.java
  alessio_la_greca_990973.smart_city.taxi.TaxiMain
 alessio_la_greca_990973/smart_city/taxi/Taxi.java

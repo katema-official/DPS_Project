@@ -1,0 +1,22 @@
+syntax = "proto3";
+package taxis.welcome;
+
+message NewTaxiPresentation{
+  int32 id = 1;
+  string hostname = 2;
+  int32 port = 3;
+  int32 currX = 4;
+  int32 currY = 5;
+}
+
+message OldTaxiPresentation{
+  int32 currX = 1;
+  int32 currY = 2;
+}
+
+service WelcomeService{
+  rpc welcomeImANewTaxi(NewTaxiPresentation) returns (OldTaxiPresentation);
+}
+
+
+

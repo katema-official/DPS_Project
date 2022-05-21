@@ -3,15 +3,26 @@ package alessio_la_greca_990973.smart_city.taxi;
 import alessio_la_greca_990973.commons.Commons;
 import alessio_la_greca_990973.server.fortaxi.datas.TaxiReplyToJoin;
 import alessio_la_greca_990973.server.fortaxi.datas.TaxiServerRepresentation;
+import alessio_la_greca_990973.smart_city.taxi.rpcservices.WelcomeServiceImpl;
 import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
+import io.grpc.stub.StreamObserver;
+import taxis.welcome.WelcomeServiceGrpc;
+import taxis.welcome.WelcomeServiceGrpc.WelcomeServiceBlockingStub;
+import taxis.welcome.WelcomeServiceGrpc.WelcomeServiceImplBase;
+import taxis.welcome.WelcomeTaxiService.*;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Taxi {
 
@@ -21,13 +32,27 @@ public class Taxi {
     private String host;
     private int batteryLevel;
 
+    private int currX;
+    private int currY;
+
+    private int state;
+
+    //each taxi must take know the other taxis: in particular, he wants to know, about each of them:
+    //-id
+    //-hostname
+    //-port
+    //-x position
+    //-y position
+    private HashMap<Integer, TaxiTaxiRepresentation> otherTaxis;
+
     public Taxi(int ID, String host) {
         this.ID = ID;
         this.host = host;
         this.batteryLevel = 100;
+        otherTaxis = new HashMap<>();
     }
 
-    public void init(){
+    public void init() throws IOException {
         Client client = Client.create();
         String serverAddress = "http://localhost:1337";
         ClientResponse clientResponse = null;
@@ -39,18 +64,47 @@ public class Taxi {
         if(clientResponse.getStatus() == 200) {
             TaxiReplyToJoin reply = clientResponse.getEntity(TaxiReplyToJoin.class);
 
-            debug("Your taxi is now in the city. Here are some infos:\n" +
-                    reply.getStartingX() + "\n" +
-                    reply.getStartingY() + "\n");
-            List<TaxiServerRepresentation> otherTaxis = reply.getCurrentTaxis();
-            if (otherTaxis != null) {
-                for (TaxiServerRepresentation t : otherTaxis) {
-                    debug(t.getId() + "\n" + t.getListeningPort() + "\n");
+            //actual initialization of this taxi with its position and the infos about the other taxis
+            currX = reply.getStartingX();
+            currY = reply.getStartingY();
+
+            debug("my port: " + getPort());
+
+            List<TaxiServerRepresentation> taxis = reply.getCurrentTaxis();
+            if (taxis != null) {
+                for (TaxiServerRepresentation t : taxis) {
+                    debug("Contacting port " + t.getListeningPort());
+                    TaxiTaxiRepresentation ttr = new TaxiTaxiRepresentation(t.getId(), t.getHostname(), t.getListeningPort(), -1, -1);
+                    debug(t.getHostname() + ":" + t.getListeningPort());
+                    OldTaxiPresentation oldTaxi = synchronousCallWelcome(t.getHostname(), t.getListeningPort());
+                    ttr.setCurrX(oldTaxi.getCurrX());
+                    ttr.setCurrY(oldTaxi.getCurrY());
+                    otherTaxis.put(ttr.getId(), ttr);
                 }
             }
 
-            //aggiungi le informazioni dei taxi a una struttura dati, dopo aver anche chiamato
-            //con grpc gli altri taxi per sapere la loro posizione/distretto.
+            //now that I have the infos about the other taxis, I can open my gRPC service to other taxis
+            Server taxiService = ServerBuilder.forPort(getPort()).addService(new WelcomeServiceImpl(this)).build();
+            taxiService.start();
+            //taxiService.awaitTermination();
+
+            //-----------------------------debug-------------------------------
+            debug("Your taxi is now in the city. Here are some infos:\n" +
+                    currX + "\n" +
+                    currY + "\n");
+            taxis = reply.getCurrentTaxis();
+            if (taxis != null) {
+                for (Map.Entry<Integer, TaxiTaxiRepresentation> entry : otherTaxis.entrySet()) {
+                    debug(entry.getValue().getId() + "\n" + entry.getValue().getListeningPort() + "\n" +
+                            "(" + entry.getValue().getCurrX() + "," + entry.getValue().getCurrY() + ")");
+                }
+            }
+            //----------------------------end debug-----------------------------
+
+
+            try {
+                taxiService.awaitTermination();
+            } catch (InterruptedException e) {throw new RuntimeException(e);}
 
         }else{
             System.out.println("That taxi was already present. Try another id please.");
@@ -83,5 +137,44 @@ public class Taxi {
     }
 
 
+
+    //to contact older taxis when I'm added to the city
+    private OldTaxiPresentation synchronousCallWelcome(String host, int port){
+        ManagedChannel channel = ManagedChannelBuilder.forTarget(host + ":" + port).usePlaintext().build();
+        WelcomeServiceBlockingStub stub = WelcomeServiceGrpc.newBlockingStub(channel);
+
+        NewTaxiPresentation me = NewTaxiPresentation.newBuilder().setId(ID).setHostname(host).setPort(getPort())
+                .setCurrX(currX).setCurrY(currY).build();
+
+
+
+        OldTaxiPresentation old = stub.welcomeImANewTaxi(me);
+        channel.shutdown();
+        return old;
+    }
+
+    public HashMap<Integer, TaxiTaxiRepresentation> getOtherTaxis() {
+        return otherTaxis;
+    }
+
+    public void setOtherTaxis(HashMap<Integer, TaxiTaxiRepresentation> otherTaxis) {
+        this.otherTaxis = otherTaxis;
+    }
+
+    public int getCurrX() {
+        return currX;
+    }
+
+    public void setCurrX(int currX) {
+        this.currX = currX;
+    }
+
+    public int getCurrY() {
+        return currY;
+    }
+
+    public void setCurrY(int currY) {
+        this.currY = currY;
+    }
 
 }

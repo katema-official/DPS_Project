@@ -10,7 +10,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.*;
-import java.lang.Math;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -21,10 +20,10 @@ public class TaxiRegisteredOnTheServer {
     //data structure used to represent the set of taxis currently
     //registered on the server, and so that are present in the
     //smart city.
-    @XmlElement(name = "taxis")
+    @XmlElement(name = "actualTaxis")
     private HashMap<Integer, TaxiServerRepresentation> actualTaxis;
 
-    @XmlElement(name = "statistics")
+    @XmlElement(name = "taxiStatistics")
     private HashMap<Integer, ArrayList<TaxiStatisticWithTimestamp>> taxiStatistics;    //TODO getter di vario tipo per il client
 
     private static TaxiRegisteredOnTheServer instance;
@@ -180,7 +179,7 @@ public class TaxiRegisteredOnTheServer {
     //this is the reader, the other two are the writers]
     //------------------------------------------------------------------------------------------------------
     //the Administrator Clients will use this method to read the list of taxis currently present in the smart city,
-    //so it need to implements the "Readers" logic so that, when there is a Writer waiting, the readers must
+    //so it needs to implement the "Readers" logic so that, when there is a Writer waiting, the readers must
     //give priority to him, otherwise, multiple readers can read at the same time.
     public ArrayList<TaxiServerRepresentation> getActualTaxis(){
         //let's synchronize the access of the readers
