@@ -3,6 +3,7 @@ package alessio_la_greca_990973.smart_city.taxi;
 import alessio_la_greca_990973.commons.Commons;
 import alessio_la_greca_990973.server.fortaxi.datas.TaxiReplyToJoin;
 import alessio_la_greca_990973.server.fortaxi.datas.TaxiServerRepresentation;
+import alessio_la_greca_990973.smart_city.taxi.pollution_simulator.PollutionSimulatorThread;
 import alessio_la_greca_990973.smart_city.taxi.rpcservices.WelcomeServiceImpl;
 import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
@@ -45,14 +46,27 @@ public class Taxi {
     //-y position
     private HashMap<Integer, TaxiTaxiRepresentation> otherTaxis;
 
+
+
+
+    private Server taxiService;
+    private Object termination;
+
     public Taxi(int ID, String host) {
         this.ID = ID;
         this.host = host;
+
+        //Moreover, the initial battery level of each taxi is equal to 100%.
         this.batteryLevel = 100;
+
         otherTaxis = new HashMap<>();
+        termination = new Object();
     }
 
     public void init() throws IOException {
+        /*Once it is launched, the Taxi process must register itself to the
+        system through the Administrator Server*/
+
         Client client = Client.create();
         String serverAddress = "http://localhost:1337";
         ClientResponse clientResponse = null;
@@ -62,15 +76,24 @@ public class Taxi {
         clientResponse = postRequestJoin(client, serverAddress + "/taxi/join", taxi);
         System.out.println(clientResponse.toString());
         if(clientResponse.getStatus() == 200) {
+            /*If its insertion is successful (i.e., there are no other
+            taxis with the same ID), the Taxi receives from the Administrator Server:
+            - its starting position in the smart city (one of the four recharge stations
+            distributed among the districts)
+            - the list of the other taxis already present in the smart city*/
             TaxiReplyToJoin reply = clientResponse.getEntity(TaxiReplyToJoin.class);
-
-            //actual initialization of this taxi with its position and the infos about the other taxis
             currX = reply.getStartingX();
             currY = reply.getStartingY();
-
-            debug("my port: " + getPort());
-
             List<TaxiServerRepresentation> taxis = reply.getCurrentTaxis();
+
+            /*Once the Taxi receives this information, it starts acquiring data from the
+            pollution sensor*/
+            PollutionSimulatorThread pollutionsThread = new PollutionSimulatorThread(this);
+            Thread t_pollutions = new Thread(pollutionsThread);
+            t_pollutions.start();
+
+            /*Then, if there are other taxis in the smart city, the taxi
+            presents itself to the other taxis by sending them its position in the grid*/
             if (taxis != null) {
                 for (TaxiServerRepresentation t : taxis) {
                     debug("Contacting port " + t.getListeningPort());
@@ -83,8 +106,10 @@ public class Taxi {
                 }
             }
 
-            //now that I have the infos about the other taxis, I can open my gRPC service to other taxis
-            Server taxiService = ServerBuilder.forPort(getPort()).addService(new WelcomeServiceImpl(this)).build();
+
+            //(I add this) now that I have the infos about the other taxis, I can open my gRPC service to other taxis,
+            //so that future taxis will be able to contact me and ask me my position (they will also tell me their initial position)
+            taxiService = ServerBuilder.forPort(getPort()).addService(new WelcomeServiceImpl(this)).build();
             taxiService.start();
             //taxiService.awaitTermination();
 
@@ -104,6 +129,7 @@ public class Taxi {
 
             try {
                 taxiService.awaitTermination();
+                System.out.println("TERMINATED!");
             } catch (InterruptedException e) {throw new RuntimeException(e);}
 
         }else{
@@ -146,11 +172,13 @@ public class Taxi {
         NewTaxiPresentation me = NewTaxiPresentation.newBuilder().setId(ID).setHostname(host).setPort(getPort())
                 .setCurrX(currX).setCurrY(currY).build();
 
-
-
         OldTaxiPresentation old = stub.welcomeImANewTaxi(me);
         channel.shutdown();
         return old;
+    }
+
+    public void shutdownTaxiServer(){
+        taxiService.shutdownNow();
     }
 
     public HashMap<Integer, TaxiTaxiRepresentation> getOtherTaxis() {

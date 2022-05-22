@@ -54,16 +54,16 @@ alessio_la_greca_990973/server/fortaxi/datas/statistics/TaxiStatisticsPacket.jav
  alessio_la_greca_990973.server.fortaxi.datas.statistics.TaxiStatisticsPacket
 alessio_la_greca_990973/smart_city/taxi/example/TaxiExample.java
  alessio_la_greca_990973.smart_city.taxi.example.TaxiExample
-alessio_la_greca_990973/server/forclient/TaxiStatisticWithTimestamp.java
- alessio_la_greca_990973.server.forclient.TaxiStatisticWithTimestamp
+alessio_la_greca_990973/server/AdministratorServer.java
+ alessio_la_greca_990973.server.AdministratorServer
 alessio_la_greca_990973/seta/Seta.java
  alessio_la_greca_990973.seta.Seta
 alessio_la_greca_990973/server/fortaxi/datas/TaxiRegisteredOnTheServer.java
  alessio_la_greca_990973.server.fortaxi.datas.TaxiRegisteredOnTheServer
 alessio_la_greca_990973/server/fortaxi/TaxiRestService.java
  alessio_la_greca_990973.server.fortaxi.TaxiRestService
-alessio_la_greca_990973/server/AdministratorServer.java
- alessio_la_greca_990973.server.AdministratorServer
+alessio_la_greca_990973/server/forclient/TaxiStatisticWithTimestamp.java
+ alessio_la_greca_990973.server.forclient.TaxiStatisticWithTimestamp
 taxis/welcome/WelcomeTaxiService.java
  taxis.welcome.WelcomeTaxiService
  taxis.welcome.WelcomeTaxiService$1
@@ -77,9 +77,13 @@ taxis/welcome/WelcomeTaxiService.java
  taxis.welcome.WelcomeTaxiService$OldTaxiPresentationOrBuilder
 alessio_la_greca_990973/smart_city/taxi/TaxiTaxiRepresentation.java
  alessio_la_greca_990973.smart_city.taxi.TaxiTaxiRepresentation
+alessio_la_greca_990973/smart_city/taxi/pollution_simulator/MyBuffer.java
+ alessio_la_greca_990973.smart_city.taxi.pollution_simulator.MyBuffer
 alessio_la_greca_990973/smart_city/taxi/rpcservices/WelcomeServiceImpl.java
  alessio_la_greca_990973.smart_city.taxi.rpcservices.WelcomeServiceImpl
 alessio_la_greca_990973/smart_city/taxi/TaxiMain.java
  alessio_la_greca_990973.smart_city.taxi.TaxiMain
+alessio_la_greca_990973/smart_city/taxi/pollution_simulator/PollutionSimulatorThread.java
+ alessio_la_greca_990973.smart_city.taxi.pollution_simulator.PollutionSimulatorThread
 alessio_la_greca_990973/smart_city/taxi/Taxi.java
  alessio_la_greca_990973.smart_city.taxi.Taxi
