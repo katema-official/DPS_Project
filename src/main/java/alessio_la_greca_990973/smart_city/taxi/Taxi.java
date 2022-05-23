@@ -5,6 +5,9 @@ import alessio_la_greca_990973.server.fortaxi.datas.TaxiReplyToJoin;
 import alessio_la_greca_990973.server.fortaxi.datas.TaxiServerRepresentation;
 import alessio_la_greca_990973.smart_city.taxi.pollution_simulator.PollutionSimulatorThread;
 import alessio_la_greca_990973.smart_city.taxi.rpcservices.WelcomeServiceImpl;
+import alessio_la_greca_990973.smart_city.taxi.threads.BatteryListener;
+import alessio_la_greca_990973.smart_city.taxi.threads.BatteryManager;
+import alessio_la_greca_990973.smart_city.taxi.threads.IdleThread;
 import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
@@ -45,12 +48,17 @@ public class Taxi {
     //-x position
     //-y position
     private HashMap<Integer, TaxiTaxiRepresentation> otherTaxis;
-
+    public Object otherTaxisLock;
 
 
 
     private Server taxiService;
     private Object termination;
+
+
+
+    public Object alertBatteryRecharge;
+
 
     public Taxi(int ID, String host) {
         this.ID = ID;
@@ -60,7 +68,9 @@ public class Taxi {
         this.batteryLevel = 100;
 
         otherTaxis = new HashMap<>();
+        otherTaxisLock = new Object();
         termination = new Object();
+        alertBatteryRecharge = new Object();
     }
 
     public void init() throws IOException {
@@ -102,6 +112,8 @@ public class Taxi {
                     OldTaxiPresentation oldTaxi = synchronousCallWelcome(t.getHostname(), t.getListeningPort());
                     ttr.setCurrX(oldTaxi.getCurrX());
                     ttr.setCurrY(oldTaxi.getCurrY());
+                    //here the lock (to modify the otherTaxis data structure) is not needed, since there is no
+                    //concurrency at this point.
                     otherTaxis.put(ttr.getId(), ttr);
                 }
             }
@@ -112,6 +124,19 @@ public class Taxi {
             taxiService = ServerBuilder.forPort(getPort()).addService(new WelcomeServiceImpl(this)).build();
             taxiService.start();
             //taxiService.awaitTermination();
+
+
+            /*Finally, the taxi subscribes to the MQTT topic of its district*/
+            IdleThread it = new IdleThread(this);
+            Thread t1 = new Thread(it);
+            t1.start();
+
+            //thread that handles recharge requests
+            BatteryManager bm = new BatteryManager(this);
+            Thread t2 = new Thread(bm);
+            t2.start();
+
+
 
             //-----------------------------debug-------------------------------
             debug("Your taxi is now in the city. Here are some infos:\n" +
@@ -204,5 +229,7 @@ public class Taxi {
     public void setCurrY(int currY) {
         this.currY = currY;
     }
+
+    public int getId(){ return ID;}
 
 }

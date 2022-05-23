@@ -5,20 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="db07cb2b-569d-4f04-af1c-f7bbfe10a618" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/pollution_simulator/MyBuffer.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/pollution_simulator/PollutionSimulatorThread.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/6.7/executionHistory/executionHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/executionHistory/executionHistory.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/6.7/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/executionHistory/executionHistory.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/6.7/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/fileHashes/fileHashes.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/6.7/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/fileHashes/fileHashes.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/6.7/javaCompile/javaCompile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/javaCompile/javaCompile.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/BatteryListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/BatteryManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/BatteryRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/IdleThread.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/proto/MutualExclusionBatteryStationService.proto" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/classes/java/main/alessio_la_greca_990973/smart_city/taxi/Taxi.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/java/main/alessio_la_greca_990973/smart_city/taxi/Taxi.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/tmp/compileJava/source-classes-mapping.txt" beforeDir="false" afterPath="$PROJECT_DIR$/build/tmp/compileJava/source-classes-mapping.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/Taxi.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/Taxi.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/TaxiMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/TaxiMain.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/rpcservices/WelcomeServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/rpcservices/WelcomeServiceImpl.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -56,22 +51,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "WebServerToolWindowFactoryState": "false",
-    "last_opened_file_path": "C:/Users/Jacopo/Desktop/Progetto_DPS_Alessio_La_Greca",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Jacopo/Desktop/Progetto_DPS_Alessio_La_Greca&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\Jacopo\Desktop\Progetto_DPS_Alessio_La_Greca\src\main\java\alessio_la_greca_990973\simulator" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.alessio_la_greca_990973.smart_city.taxi.TaxiMain">
+  <component name="RunManager" selected="Application.TaxiMain">
     <configuration name="AdministratorClient" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="alessio_la_greca_990973.client.AdministratorClient" />
       <module name="DPS_project_2022.main" />
@@ -138,15 +133,14 @@
       </method>
     </configuration>
     <list>
+      <item itemvalue="Application.TaxiMain" />
       <item itemvalue="Application.alessio_la_greca_990973.smart_city.taxi.example.TaxiExample" />
       <item itemvalue="Application.AdministratorClient" />
       <item itemvalue="Application.alessio_la_greca_990973.server.AdministratorServer" />
       <item itemvalue="Application.ClientExample" />
-      <item itemvalue="Application.alessio_la_greca_990973.smart_city.taxi.TaxiMain" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.alessio_la_greca_990973.smart_city.taxi.TaxiMain" />
         <item itemvalue="Application.alessio_la_greca_990973.smart_city.taxi.example.TaxiExample" />
         <item itemvalue="Application.AdministratorClient" />
         <item itemvalue="Application.ClientExample" />
@@ -180,7 +174,8 @@
       <workItem from="1653050156241" duration="4178000" />
       <workItem from="1653080474746" duration="594000" />
       <workItem from="1653165537365" duration="5653000" />
-      <workItem from="1653244920276" duration="5709000" />
+      <workItem from="1653244920276" duration="5782000" />
+      <workItem from="1653333839501" duration="6819000" />
     </task>
     <servers />
   </component>

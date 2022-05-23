@@ -20,7 +20,9 @@ public class WelcomeServiceImpl extends WelcomeServiceGrpc.WelcomeServiceImplBas
         //I save the new taxi that presented to me
         TaxiTaxiRepresentation ttr = new TaxiTaxiRepresentation(input.getId(), input.getHostname(), input.getPort(),
                 input.getCurrX(), input.getCurrY());
-        taxi.getOtherTaxis().put(ttr.getId(), ttr);
+        synchronized (taxi.otherTaxisLock) {
+            taxi.getOtherTaxis().put(ttr.getId(), ttr);
+        }
 
         //I tell him where I am.
         OldTaxiPresentation my_presentation = OldTaxiPresentation.newBuilder().setCurrX(taxi.getCurrX()).setCurrY(taxi.getCurrY()).build();

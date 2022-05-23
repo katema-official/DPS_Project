@@ -15,8 +15,8 @@ public class TaxiMain {
         int id = -1;
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         try {
-            String name = reader.readLine();
-            id = Integer.parseInt(name);
+            String line = reader.readLine();
+            id = Integer.parseInt(line);
 
             if(id < 0 || id > 16383){
                 System.out.println("Please insert an integer between 0 and 16383");
@@ -24,6 +24,20 @@ public class TaxiMain {
 
                 Taxi taxi = new Taxi(id, "localhost");
                 taxi.init();
+
+
+                //from now on, it's just the command line fot giving orders to the taxi
+                while(true){
+                    try {
+                        line = reader.readLine();
+                    } catch (IOException e) {e.printStackTrace();}
+                    if(line.equals("recharge")){
+                        synchronized (taxi.alertBatteryRecharge) {
+                            taxi.alertBatteryRecharge.notify();
+                        }
+                    }
+                }
+
             }
         } catch (IOException e) {
             e.printStackTrace();

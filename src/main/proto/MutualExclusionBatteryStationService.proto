@@ -1,0 +1,28 @@
+syntax = "proto3";
+package taxis.recharge;
+
+message RechargeStationRequest{
+  int32 id = 1;
+  double timestamp = 2;
+
+  enum District{
+    DISTRICT_ERROR = 0;
+    DISTRICT1 = 1;
+    DISTRICT2 = 2;
+    DISTRICT3 = 3;
+    DISTRICT4 = 4;
+  }
+
+  District district = 3;
+}
+
+message RechargeStationReply{
+  bool ok = 1;
+}
+
+service WelcomeService{
+  rpc welcomeImANewTaxi(RechargeStationRequest) returns (RechargeStationReply);
+}
+
+
+
