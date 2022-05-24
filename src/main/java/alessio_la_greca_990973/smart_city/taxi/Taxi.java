@@ -162,7 +162,7 @@ public class Taxi {
         }
     }
 
-    private int getPort(){
+    public int getPort(){
         return 49152 + ID;
     }
 

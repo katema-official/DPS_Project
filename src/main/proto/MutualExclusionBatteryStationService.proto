@@ -20,8 +20,8 @@ message RechargeStationReply{
   bool ok = 1;
 }
 
-service WelcomeService{
-  rpc welcomeImANewTaxi(RechargeStationRequest) returns (RechargeStationReply);
+service RechargeRequestService{
+  rpc mayIRecharge(RechargeStationRequest) returns (RechargeStationReply);
 }
 
 
