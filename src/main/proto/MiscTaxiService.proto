@@ -1,5 +1,23 @@
 syntax = "proto3";
-package taxis.recharge;
+package taxis.service;
+
+message NewTaxiPresentation{
+  int32 id = 1;
+  string hostname = 2;
+  int32 port = 3;
+  int32 currX = 4;
+  int32 currY = 5;
+}
+
+message OldTaxiPresentation{
+  int32 currX = 1;
+  int32 currY = 2;
+}
+
+
+//-------------------------------
+
+
 
 message RechargeStationRequest{
   int32 id = 1;
@@ -20,7 +38,9 @@ message RechargeStationReply{
   bool ok = 1;
 }
 
-service RechargeRequestService{
+service MiscTaxiService{
+  rpc welcomeImANewTaxi(NewTaxiPresentation) returns (OldTaxiPresentation);
+
   rpc mayIRecharge(RechargeStationRequest) returns (RechargeStationReply);
 }
 

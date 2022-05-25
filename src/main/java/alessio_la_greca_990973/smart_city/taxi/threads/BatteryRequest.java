@@ -6,9 +6,9 @@ import alessio_la_greca_990973.smart_city.taxi.Taxi;
 import alessio_la_greca_990973.smart_city.taxi.TaxiTaxiRepresentation;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import taxis.recharge.MutualExclusionBatteryStationService.*;
-import taxis.recharge.RechargeRequestServiceGrpc;
-import taxis.recharge.RechargeRequestServiceGrpc.*;
+import taxis.service.MiscTaxiServiceGrpc;
+import taxis.service.MiscTaxiServiceGrpc.*;
+import taxis.service.MiscTaxiServiceOuterClass.*;
 
 public class BatteryRequest implements Runnable{
     private Taxi thisTaxi;
@@ -17,20 +17,20 @@ public class BatteryRequest implements Runnable{
     private double myTimestamp;
     private RechargeStationRequest.District myDistrict;
 
-    private boolean DEBUG_LOCAL;
+    private boolean DEBUG_LOCAL = true;
 
     public BatteryRequest(Taxi t, BatteryManager bm, TaxiTaxiRepresentation ttr,
-                          double myTimestamp, District myDistrict){
+                          double myTimestamp, District d){
         thisTaxi = t;
         thisBatteryManager = bm;
         taxiToRequest = ttr;
         this.myTimestamp = myTimestamp;
-        switch(myDistrict){
-            case DISTRICT1: this.myDistrict = RechargeStationRequest.District.DISTRICT1;
-            case DISTRICT2: this.myDistrict = RechargeStationRequest.District.DISTRICT2;
-            case DISTRICT3: this.myDistrict = RechargeStationRequest.District.DISTRICT3;
-            case DISTRICT4: this.myDistrict = RechargeStationRequest.District.DISTRICT4;
-            case DISTRICT_ERROR: this.myDistrict = RechargeStationRequest.District.DISTRICT_ERROR;
+        switch(d){
+            case DISTRICT1: this.myDistrict = RechargeStationRequest.District.DISTRICT1; break;
+            case DISTRICT2: this.myDistrict = RechargeStationRequest.District.DISTRICT2; break;
+            case DISTRICT3: this.myDistrict = RechargeStationRequest.District.DISTRICT3; break;
+            case DISTRICT4: this.myDistrict = RechargeStationRequest.District.DISTRICT4; break;
+            case DISTRICT_ERROR: this.myDistrict = RechargeStationRequest.District.DISTRICT_ERROR; break;
         }
     }
 
@@ -54,7 +54,7 @@ public class BatteryRequest implements Runnable{
         String host = taxiToRequest.getHostname();
         int port = taxiToRequest.getListeningPort();
         ManagedChannel channel = ManagedChannelBuilder.forTarget(host + ":" + port).usePlaintext().build();
-        RechargeRequestServiceBlockingStub stub = RechargeRequestServiceGrpc.newBlockingStub(channel);
+        MiscTaxiServiceBlockingStub stub = MiscTaxiServiceGrpc.newBlockingStub(channel);
 
         RechargeStationRequest request =
                 RechargeStationRequest.newBuilder()

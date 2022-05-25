@@ -1,7 +1,7 @@
 package alessio_la_greca_990973.smart_city.taxi;
 
 import io.grpc.stub.StreamObserver;
-import taxis.recharge.MutualExclusionBatteryStationService.*;
+import taxis.service.MiscTaxiServiceOuterClass.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,19 +1,45 @@
 package alessio_la_greca_990973.smart_city.taxi.rpcservices;
 
+
 import alessio_la_greca_990973.commons.Commons;
+import alessio_la_greca_990973.smart_city.taxi.Taxi;
+import alessio_la_greca_990973.smart_city.taxi.TaxiTaxiRepresentation;
 import alessio_la_greca_990973.smart_city.taxi.threads.BatteryListener;
 import io.grpc.stub.StreamObserver;
-import taxis.recharge.MutualExclusionBatteryStationService.*;
-import taxis.recharge.RechargeRequestServiceGrpc.RechargeRequestServiceImplBase;
+import taxis.service.MiscTaxiServiceGrpc.*;
+import taxis.service.MiscTaxiServiceOuterClass.*;
 
-public class RechargeRequestServiceImpl extends RechargeRequestServiceImplBase {
+public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
 
+    private Taxi taxi;
     private BatteryListener batteryListener;
-    private boolean DEBUG_LOCAL;
+    private boolean DEBUG_LOCAL = true;
 
-    public RechargeRequestServiceImpl(BatteryListener bl){
+    public MiscTaxiServiceImpl(Taxi taxi, BatteryListener bl){
+        this.taxi = taxi;
         this.batteryListener = bl;
     }
+
+    @Override
+    public void welcomeImANewTaxi(NewTaxiPresentation input, StreamObserver<OldTaxiPresentation> responseObserver){
+
+        //I save the new taxi that presented to me
+        TaxiTaxiRepresentation ttr = new TaxiTaxiRepresentation(input.getId(), input.getHostname(), input.getPort(),
+                input.getCurrX(), input.getCurrY());
+        synchronized (taxi.otherTaxisLock) {
+            taxi.getOtherTaxis().put(ttr.getId(), ttr);
+        }
+
+        //I tell him where I am.
+        OldTaxiPresentation my_presentation = OldTaxiPresentation.newBuilder().setCurrX(taxi.getCurrX()).setCurrY(taxi.getCurrY()).build();
+
+        System.out.println("my_presentation = " + my_presentation);
+
+        responseObserver.onNext(my_presentation);
+        responseObserver.onCompleted();
+    }
+
+
 
     @Override
     public void mayIRecharge(RechargeStationRequest input, StreamObserver<RechargeStationReply> responseObserver){
@@ -36,7 +62,7 @@ public class RechargeRequestServiceImpl extends RechargeRequestServiceImplBase {
         }else if(currentState == Commons.WANT_TO_RECHARGE){
             //If instead I want to access the resource, check:
             //this guy that is contacting me, asked to access the resource before me?
-            if(input.getTimestamp() < batteryListener.getThisBatteryManager().getTimestampOfRequest()){
+            if(input.getTimestamp() < taxi.getBatteryManager().getTimestampOfRequest()){
                 responseObserver.onNext(ok);
                 responseObserver.onCompleted();
                 debug("Taxi " + batteryListener.getThisTaxi().getId() + " is interested" +
@@ -47,7 +73,7 @@ public class RechargeRequestServiceImpl extends RechargeRequestServiceImplBase {
                 debug("Taxi " + batteryListener.getThisTaxi().getId() + " is interested" +
                         " in recharging, and arrived before taxi " + input.getId() +". So, WAIT!");
             }
-        }else{
+        }else if(currentState == Commons.RECHARGING){
             //if I'm using the resource, I can't reply immediately. Others will have to wait
             batteryListener.getQueue().appendPendingRequest(responseObserver);
             debug("Taxi " + batteryListener.getThisTaxi().getId() + " is using the recharge" +

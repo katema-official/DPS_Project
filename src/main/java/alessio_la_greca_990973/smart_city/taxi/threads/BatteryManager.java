@@ -16,26 +16,23 @@ public class BatteryManager implements Runnable{
     private int currentParticipants;
     public Object updateAcks;
     public Object canRecharge;
-    private PendingRechargeRequestQueue queue;
+
 
     private BatteryListener batteryListener;
     private boolean DEBUG_LOCAL = true;
 
     private double timestampOfRequest;
 
-    public BatteryManager(Taxi t){
+    public BatteryManager(Taxi t, BatteryListener bl){
         thisTaxi = t;
         acks = 0;
         updateAcks = new Object();
         canRecharge = new Object();
-        queue = new PendingRechargeRequestQueue();
 
         //for correctly handling the recharge request of the current district, this taxi needs also to be always
         //ready to reply to another taxi that asks him the permission to go recharge. To do this, we create another
         //thread that simply listens to other taxis' recharge requests.
-        batteryListener = new BatteryListener(thisTaxi, this, queue);
-        Thread th = new Thread(batteryListener);
-        th.start();
+        batteryListener = bl;
     }
 
     public void run(){
@@ -117,7 +114,7 @@ public class BatteryManager implements Runnable{
                     thisTaxi.setState(Commons.IDLE);
                     timestampOfRequest = 0;
                 }
-                queue.sendOkToAllPendingRequests();
+                thisTaxi.getQueue().sendOkToAllPendingRequests();
 
 
             }
@@ -129,6 +126,7 @@ public class BatteryManager implements Runnable{
     public void addAck(){
         synchronized (updateAcks) {
             this.acks++;
+            debug("number of received acks: " + acks + "/" + currentParticipants);
             if(acks == currentParticipants){
                 synchronized (canRecharge){
                     canRecharge.notify();

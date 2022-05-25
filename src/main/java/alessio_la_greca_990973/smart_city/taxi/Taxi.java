@@ -4,7 +4,7 @@ import alessio_la_greca_990973.commons.Commons;
 import alessio_la_greca_990973.server.fortaxi.datas.TaxiReplyToJoin;
 import alessio_la_greca_990973.server.fortaxi.datas.TaxiServerRepresentation;
 import alessio_la_greca_990973.smart_city.taxi.pollution_simulator.PollutionSimulatorThread;
-import alessio_la_greca_990973.smart_city.taxi.rpcservices.WelcomeServiceImpl;
+import alessio_la_greca_990973.smart_city.taxi.rpcservices.MiscTaxiServiceImpl;
 import alessio_la_greca_990973.smart_city.taxi.threads.BatteryListener;
 import alessio_la_greca_990973.smart_city.taxi.threads.BatteryManager;
 import alessio_la_greca_990973.smart_city.taxi.threads.IdleThread;
@@ -17,11 +17,9 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import io.grpc.stub.StreamObserver;
-import taxis.welcome.WelcomeServiceGrpc;
-import taxis.welcome.WelcomeServiceGrpc.WelcomeServiceBlockingStub;
-import taxis.welcome.WelcomeServiceGrpc.WelcomeServiceImplBase;
-import taxis.welcome.WelcomeTaxiService.*;
+import taxis.service.MiscTaxiServiceGrpc;
+import taxis.service.MiscTaxiServiceGrpc.*;
+import taxis.service.MiscTaxiServiceOuterClass.*;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -61,6 +59,13 @@ public class Taxi {
     public Object alertBatteryRecharge;
     private BatteryManager batteryManager;
 
+
+
+    private PendingRechargeRequestQueue queue;
+    private BatteryListener batteryListener;
+
+
+
     public Taxi(int ID, String host) {
         this.ID = ID;
         this.host = host;
@@ -73,6 +78,9 @@ public class Taxi {
         termination = new Object();
         alertBatteryRecharge = new Object();
         stateLock = new Object();
+        queue = new PendingRechargeRequestQueue();
+        batteryListener = new BatteryListener(this, queue);
+        batteryManager = new BatteryManager(this, batteryListener);
     }
 
     public void init() throws IOException {
@@ -125,14 +133,14 @@ public class Taxi {
             }
 
 
+
             //(I add this) now that I have the infos about the other taxis, I can open my gRPC service to other taxis,
             //so that future taxis will be able to contact me and ask me my position (they will also tell me their initial position)
-            taxiService = ServerBuilder.forPort(getPort()).addService(new WelcomeServiceImpl(this)).build();
+            taxiService = ServerBuilder.forPort(getPort()).addService(new MiscTaxiServiceImpl(this, batteryListener)).build();
             taxiService.start();
             //taxiService.awaitTermination();
 
             //thread that handles recharge requests
-            batteryManager = new BatteryManager(this);
             Thread t2 = new Thread(batteryManager);
             t2.start();
 
@@ -199,7 +207,7 @@ public class Taxi {
     //to contact older taxis when I'm added to the city
     private OldTaxiPresentation synchronousCallWelcome(String host, int port){
         ManagedChannel channel = ManagedChannelBuilder.forTarget(host + ":" + port).usePlaintext().build();
-        WelcomeServiceBlockingStub stub = WelcomeServiceGrpc.newBlockingStub(channel);
+        MiscTaxiServiceBlockingStub stub = MiscTaxiServiceGrpc.newBlockingStub(channel);
 
         NewTaxiPresentation me = NewTaxiPresentation.newBuilder().setId(ID).setHostname(host).setPort(getPort())
                 .setCurrX(currX).setCurrY(currY).build();
@@ -249,6 +257,18 @@ public class Taxi {
 
     public void subtractPercentageFromBatteryLevel(int amount){
         this.batteryLevel -= amount;
+    }
+
+    public PendingRechargeRequestQueue getQueue() {
+        return queue;
+    }
+
+    public BatteryManager getBatteryManager() {
+        return batteryManager;
+    }
+
+    public BatteryListener getBatteryListener() {
+        return batteryListener;
     }
 
     public int getState() {
