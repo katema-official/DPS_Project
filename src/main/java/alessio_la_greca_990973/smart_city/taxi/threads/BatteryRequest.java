@@ -6,7 +6,6 @@ import alessio_la_greca_990973.smart_city.taxi.Taxi;
 import alessio_la_greca_990973.smart_city.taxi.TaxiTaxiRepresentation;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import taxis.recharge.MutualExclusionBatteryStationService;
 import taxis.recharge.MutualExclusionBatteryStationService.*;
 import taxis.recharge.RechargeRequestServiceGrpc;
 import taxis.recharge.RechargeRequestServiceGrpc.*;
@@ -58,7 +57,7 @@ public class BatteryRequest implements Runnable{
         RechargeRequestServiceBlockingStub stub = RechargeRequestServiceGrpc.newBlockingStub(channel);
 
         RechargeStationRequest request =
-                MutualExclusionBatteryStationService.RechargeStationRequest.newBuilder()
+                RechargeStationRequest.newBuilder()
                         .setId(thisTaxi.getId()).setTimestamp(myTimestamp).setDistrict(this.myDistrict).build();
 
         RechargeStationReply ok = stub.mayIRecharge(request);

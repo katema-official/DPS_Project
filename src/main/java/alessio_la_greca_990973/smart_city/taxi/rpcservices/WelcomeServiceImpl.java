@@ -5,8 +5,9 @@ import alessio_la_greca_990973.smart_city.taxi.TaxiTaxiRepresentation;
 import io.grpc.stub.StreamObserver;
 import taxis.welcome.WelcomeServiceGrpc;
 import taxis.welcome.WelcomeTaxiService.*;
+import taxis.welcome.WelcomeServiceGrpc.*;
 
-public class WelcomeServiceImpl extends WelcomeServiceGrpc.WelcomeServiceImplBase {
+public class WelcomeServiceImpl extends WelcomeServiceImplBase {
 
     private Taxi taxi;
 

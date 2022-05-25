@@ -1,7 +1,6 @@
 package alessio_la_greca_990973.smart_city.taxi.rpcservices;
 
 import alessio_la_greca_990973.commons.Commons;
-import alessio_la_greca_990973.smart_city.taxi.PendingRechargeRequestQueue;
 import alessio_la_greca_990973.smart_city.taxi.threads.BatteryListener;
 import io.grpc.stub.StreamObserver;
 import taxis.recharge.MutualExclusionBatteryStationService.*;
