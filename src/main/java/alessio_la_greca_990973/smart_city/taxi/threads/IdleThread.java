@@ -1,5 +1,6 @@
 package alessio_la_greca_990973.smart_city.taxi.threads;
 
+import alessio_la_greca_990973.commons.Commons;
 import alessio_la_greca_990973.smart_city.District;
 import alessio_la_greca_990973.smart_city.SmartCity;
 import alessio_la_greca_990973.smart_city.taxi.Taxi;
@@ -18,6 +19,8 @@ public class IdleThread implements Runnable{
     private String clientId;
     private int qos;
 
+    private boolean DEBUG_LOCAL = true;
+
     public IdleThread(Taxi t){
         thisTaxi = t;
 
@@ -32,9 +35,9 @@ public class IdleThread implements Runnable{
             connOpts.setCleanSession(true);
 
             // Connect the client
-            System.out.println(clientId + " Connecting Broker " + broker);
+            System.out.println("Taxi " + thisTaxi.getId() + " connecting to Broker " + broker);
             client.connect(connOpts);
-            System.out.println(clientId + " Connected");
+            System.out.println("Taxi " + thisTaxi.getId() + " connected");
 
 
             // Callback
@@ -72,6 +75,7 @@ public class IdleThread implements Runnable{
             System.out.println("excep " + me);
             me.printStackTrace();
         }
+        debug("finished the constructor");
     }
 
     @Override
@@ -79,9 +83,32 @@ public class IdleThread implements Runnable{
         //first thing first: the taxi subscribes to the district to which it belongs right now
         District d = SmartCity.getDistrict(thisTaxi.getCurrX(), thisTaxi.getCurrY());
         subscribeToADistrictTopic(d);
+
+        debug("hi there");
+
+        //just for trying
+        while(thisTaxi.getBatteryLevel() >= 30){
+
+            try {
+                Thread.sleep(250);
+                thisTaxi.subtractPercentageFromBatteryLevel(10);
+                debug("battery level: " + thisTaxi.getBatteryLevel());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        synchronized (thisTaxi.alertBatteryRecharge) {
+            thisTaxi.alertBatteryRecharge.notify();
+        }
+
     }
 
 
+    private void debug(String msg){
+        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL) System.out.println("debug: " + msg);
+    }
 
 
 
@@ -107,6 +134,7 @@ public class IdleThread implements Runnable{
             System.out.println("excep " + me);
             me.printStackTrace();
         }
+        debug("ok, subscribed!");
     }
 
     private void closeMqttSubscriberConnection(){

@@ -15,14 +15,7 @@ public class PendingRechargeRequestQueue {
         request = new ArrayList<StreamObserver<RechargeStationReply>>();
     }
 
-    public synchronized static PendingRechargeRequestQueue getInstance(){
-        if(instance==null){
-            instance = new PendingRechargeRequestQueue();
-        }
-        return instance;
-    }
-
-    public void senOkToAllPendingRequests(){
+    public void sendOkToAllPendingRequests(){
         for(StreamObserver<RechargeStationReply> responseObserver : request) {
             RechargeStationReply ok = RechargeStationReply.newBuilder().setOk(true).build();
             responseObserver.onNext(ok);

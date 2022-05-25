@@ -1,5 +1,6 @@
 package alessio_la_greca_990973.smart_city.taxi.threads;
 
+import alessio_la_greca_990973.commons.Commons;
 import alessio_la_greca_990973.smart_city.District;
 import alessio_la_greca_990973.smart_city.SmartCity;
 import alessio_la_greca_990973.smart_city.taxi.PendingRechargeRequestQueue;
@@ -15,26 +16,25 @@ public class BatteryManager implements Runnable{
     private int currentParticipants;
     public Object updateAcks;
     public Object canRecharge;
-    public Object rechargeStateLock;
+    private PendingRechargeRequestQueue queue;
+
+    private BatteryListener batteryListener;
+    private boolean DEBUG_LOCAL = true;
 
     private double timestampOfRequest;
-
-    private int rechargeState;  //0 = not interested, 1 = interested, 2 = currently using the resource
-
 
     public BatteryManager(Taxi t){
         thisTaxi = t;
         acks = 0;
         updateAcks = new Object();
         canRecharge = new Object();
-
-        rechargeState = 0;
+        queue = new PendingRechargeRequestQueue();
 
         //for correctly handling the recharge request of the current district, this taxi needs also to be always
         //ready to reply to another taxi that asks him the permission to go recharge. To do this, we create another
         //thread that simply listens to other taxis' recharge requests.
-        BatteryListener bl = new BatteryListener(thisTaxi, this);
-        Thread th = new Thread(bl);
+        batteryListener = new BatteryListener(thisTaxi, this, queue);
+        Thread th = new Thread(batteryListener);
         th.start();
     }
 
@@ -42,9 +42,10 @@ public class BatteryManager implements Runnable{
         while(true){		//!taxiMustTerminate
             synchronized(thisTaxi.alertBatteryRecharge){
                 try {
+                    debug("waiting for recharge request...");
                     thisTaxi.alertBatteryRecharge.wait();
-                    synchronized (rechargeStateLock) {
-                        rechargeState = 1;
+                    synchronized (thisTaxi.stateLock) {
+                        thisTaxi.setState(Commons.WANT_TO_RECHARGE);
                         timestampOfRequest = System.currentTimeMillis();
                     }
                 } catch (InterruptedException e) {throw new RuntimeException(e);}
@@ -73,21 +74,51 @@ public class BatteryManager implements Runnable{
 
                 synchronized(canRecharge){
                     try {
-                        canRecharge.wait();
-                        synchronized (rechargeStateLock) {
-                            rechargeState = 2;
+                        //if there are no participants, the taxi can recharge without problems
+                        if(currentParticipants > 0) {
+                            canRecharge.wait();
                         }
+
+                        thisTaxi.setState(Commons.RECHARGING);  //already synchronized in setState()
+
                     } catch (InterruptedException e) {throw new RuntimeException(e);}
                 }
 
                 //TODO: si ricarica, ovvero, fa la sleep, si sposta, batteria al 100%
+                /*Moreover, when a taxi acquires rights
+                to recharge its battery:*/
 
+                /*it consumes 1% of its battery level for each kilometer traveled to reach
+                the recharge station*/
+                int[] rechargeCoordinates = SmartCity.getCoordinatesForRechargeStation(
+                        SmartCity.getDistrict(thisTaxi.getCurrX(), thisTaxi.getCurrY()));
 
-                synchronized (rechargeStateLock) {
-                    rechargeState = 0;
+                int distance = SmartCity.distance(thisTaxi.getCurrX(), thisTaxi.getCurrY(),
+                        rechargeCoordinates[0], rechargeCoordinates[1]);
+
+                /*its position becomes the same as the cell of the recharge station of the
+                district in which the taxi is currently positioned.*/
+                thisTaxi.setCurrX(rechargeCoordinates[0]);
+                thisTaxi.setCurrX(rechargeCoordinates[1]);
+
+                debug("Starting to recharge...");
+
+                /*The recharging operation is simulated through a Thread.sleep() of 10
+                seconds.*/
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                debug("Recharge finished!");
+
+                synchronized (thisTaxi.stateLock) {
+                    thisTaxi.setState(Commons.IDLE);
                     timestampOfRequest = 0;
                 }
-                PendingRechargeRequestQueue.getInstance().senOkToAllPendingRequests();
+                queue.sendOkToAllPendingRequests();
+
 
             }
 
@@ -106,17 +137,13 @@ public class BatteryManager implements Runnable{
         }
     }
 
-
-
-    public int getRechargeState() {
-        synchronized (rechargeStateLock) {
-            return rechargeState;
-        }
+    public double getTimestampOfRequest() {
+        return timestampOfRequest;
     }
 
-    public double getTimestampOfRequest() {
-        synchronized (rechargeStateLock) {
-            return timestampOfRequest;
+    private void debug(String msg){
+        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL){
+            System.out.println("debug: " + msg);
         }
     }
 }

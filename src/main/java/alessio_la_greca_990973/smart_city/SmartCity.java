@@ -53,5 +53,20 @@ public class SmartCity {
         return y;
     }
 
+    public static int[] getCoordinatesForRechargeStation(District d){
+        int[] ret = new int[2];
+        switch(d){
+            case DISTRICT1: ret[0] = 0; ret[1] = 0; return ret;
+            case DISTRICT2: ret[0] = 9; ret[1] = 0; return ret;
+            case DISTRICT3: ret[0] = 9; ret[1] = 9; return ret;
+            case DISTRICT4: ret[0] = 0; ret[1] = 9; return ret;
+            default: return null;
+        }
+    }
+
+    public static int distance(int x1, int y1, int x2, int y2){
+        return (int) Math.ceil(Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)));
+    }
+
 
 }

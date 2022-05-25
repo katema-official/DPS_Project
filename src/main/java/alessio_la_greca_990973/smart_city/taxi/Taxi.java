@@ -40,6 +40,7 @@ public class Taxi {
     private int currY;
 
     private int state;
+    public Object stateLock;
 
     //each taxi must take know the other taxis: in particular, he wants to know, about each of them:
     //-id
@@ -58,7 +59,7 @@ public class Taxi {
 
 
     public Object alertBatteryRecharge;
-
+    private BatteryManager batteryManager;
 
     public Taxi(int ID, String host) {
         this.ID = ID;
@@ -71,6 +72,7 @@ public class Taxi {
         otherTaxisLock = new Object();
         termination = new Object();
         alertBatteryRecharge = new Object();
+        stateLock = new Object();
     }
 
     public void init() throws IOException {
@@ -94,6 +96,10 @@ public class Taxi {
             TaxiReplyToJoin reply = clientResponse.getEntity(TaxiReplyToJoin.class);
             currX = reply.getStartingX();
             currY = reply.getStartingY();
+            //TODO: remove
+            currX = 9;
+            currY = 9;
+
             List<TaxiServerRepresentation> taxis = reply.getCurrentTaxis();
 
             /*Once the Taxi receives this information, it starts acquiring data from the
@@ -125,16 +131,17 @@ public class Taxi {
             taxiService.start();
             //taxiService.awaitTermination();
 
+            //thread that handles recharge requests
+            batteryManager = new BatteryManager(this);
+            Thread t2 = new Thread(batteryManager);
+            t2.start();
 
             /*Finally, the taxi subscribes to the MQTT topic of its district*/
             IdleThread it = new IdleThread(this);
             Thread t1 = new Thread(it);
             t1.start();
 
-            //thread that handles recharge requests
-            BatteryManager bm = new BatteryManager(this);
-            Thread t2 = new Thread(bm);
-            t2.start();
+
 
 
 
@@ -232,4 +239,27 @@ public class Taxi {
 
     public int getId(){ return ID;}
 
+    public int getBatteryLevel() {
+        return batteryLevel;
+    }
+
+    public void setBatteryLevel(int batteryLevel) {
+        this.batteryLevel = batteryLevel;
+    }
+
+    public void subtractPercentageFromBatteryLevel(int amount){
+        this.batteryLevel -= amount;
+    }
+
+    public int getState() {
+        synchronized (stateLock) {
+            return state;
+        }
+    }
+
+    public void setState(int state) {
+        synchronized (stateLock) {
+            this.state = state;
+        }
+    }
 }

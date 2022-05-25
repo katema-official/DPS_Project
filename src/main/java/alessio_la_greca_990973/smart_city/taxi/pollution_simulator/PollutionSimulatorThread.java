@@ -42,7 +42,7 @@ public class PollutionSimulatorThread implements Runnable{
                     }
                     value = value / 8;
                     Measurement m = new Measurement("pm10_mean-"+(ID++), "PM10", value, System.currentTimeMillis());
-                    System.out.println("generated m = " + m.getId() + ", " + m.getValue() + ", " + m.getTimestamp());
+                    //System.out.println("generated m = " + m.getId() + ", " + m.getValue() + ", " + m.getTimestamp());
                 } catch (InterruptedException e) {throw new RuntimeException(e);}
             }
 

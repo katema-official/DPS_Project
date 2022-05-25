@@ -1,5 +1,6 @@
 package alessio_la_greca_990973.smart_city.taxi.threads;
 
+import alessio_la_greca_990973.commons.Commons;
 import alessio_la_greca_990973.smart_city.District;
 import alessio_la_greca_990973.smart_city.taxi.Taxi;
 import alessio_la_greca_990973.smart_city.taxi.TaxiTaxiRepresentation;
@@ -16,6 +17,8 @@ public class BatteryRequest implements Runnable{
     private TaxiTaxiRepresentation taxiToRequest;
     private double myTimestamp;
     private RechargeStationRequest.District myDistrict;
+
+    private boolean DEBUG_LOCAL;
 
     public BatteryRequest(Taxi t, BatteryManager bm, TaxiTaxiRepresentation ttr,
                           double myTimestamp, District myDistrict){
@@ -34,6 +37,8 @@ public class BatteryRequest implements Runnable{
 
     @Override
     public void run() {
+        debug("I, taxi " + thisTaxi.getId() + ", am asking to taxi " + taxiToRequest.getId() +
+                " to accesso to the recharge station of district " + this.myDistrict);
 
         //I ask to another taxi of my district (or, at least, that was present in my district at the moment
         //of the request) if I can get access to the shared resource, that is, the recharge station.
@@ -54,12 +59,17 @@ public class BatteryRequest implements Runnable{
 
         RechargeStationRequest request =
                 MutualExclusionBatteryStationService.RechargeStationRequest.newBuilder()
-                        .setId(thisTaxi.getId()).setTimestamp(myTimestamp).setDistrict(myDistrict).build();
+                        .setId(thisTaxi.getId()).setTimestamp(myTimestamp).setDistrict(this.myDistrict).build();
 
         RechargeStationReply ok = stub.mayIRecharge(request);
         channel.shutdown();
         return ok;
     }
 
+    private void debug(String msg){
+        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL){
+            System.out.println("debug: " + msg);
+        }
+    }
 
 }
