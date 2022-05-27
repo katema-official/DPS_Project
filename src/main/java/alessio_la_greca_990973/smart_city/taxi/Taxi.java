@@ -81,6 +81,7 @@ public class Taxi {
         queue = new PendingRechargeRequestQueue();
         batteryListener = new BatteryListener(this, queue);
         batteryManager = new BatteryManager(this, batteryListener);
+        setState(Commons.INITIALIZING);
     }
 
     public void init() throws IOException {

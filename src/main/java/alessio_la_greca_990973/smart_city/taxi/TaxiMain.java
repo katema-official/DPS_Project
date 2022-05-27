@@ -26,7 +26,7 @@ public class TaxiMain {
                 taxi.init();
 
 
-                //from now on, it's just the command line fot giving orders to the taxi
+                //from now on, it's just the command line for giving orders to the taxi
                 while(true){
                     try {
                         line = reader.readLine();

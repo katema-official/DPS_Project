@@ -87,6 +87,7 @@ public class IdleThread implements Runnable{
         debug("hi there");
 
         //just for trying
+
         while(thisTaxi.getBatteryLevel() >= 30){
 
             try {
@@ -102,6 +103,9 @@ public class IdleThread implements Runnable{
         synchronized (thisTaxi.alertBatteryRecharge) {
             thisTaxi.alertBatteryRecharge.notify();
         }
+
+
+
 
     }
 

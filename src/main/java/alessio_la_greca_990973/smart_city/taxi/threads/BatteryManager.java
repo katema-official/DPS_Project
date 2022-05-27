@@ -93,6 +93,8 @@ public class BatteryManager implements Runnable{
                 int distance = SmartCity.distance(thisTaxi.getCurrX(), thisTaxi.getCurrY(),
                         rechargeCoordinates[0], rechargeCoordinates[1]);
 
+                thisTaxi.subtractPercentageFromBatteryLevel(distance);
+
                 /*its position becomes the same as the cell of the recharge station of the
                 district in which the taxi is currently positioned.*/
                 thisTaxi.setCurrX(rechargeCoordinates[0]);
