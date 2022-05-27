@@ -9,6 +9,26 @@ message RideRequestMessage{
     int32 arrivingY = 5;
 }
 
+enum District{
+    DISTRICT_ERROR = 0;
+    DISTRICT1 = 1;
+    DISTRICT2 = 2;
+    DISTRICT3 = 3;
+    DISTRICT4 = 4;
+}
+//used by a taxi to tell Seta that now there
+//is a taxi in a certain district
+message NotifyFromTaxi{
+    District district = 1;
+}
+
+//used by a taxi to tell seta that he took care
+//about a specific ride
+message AckFromTaxi{
+    int32 idRequest = 1;
+    District district = 2;
+}
+
 
 
 

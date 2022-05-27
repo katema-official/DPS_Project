@@ -3,9 +3,11 @@ package alessio_la_greca_990973.seta;
 import alessio_la_greca_990973.commons.Commons;
 import alessio_la_greca_990973.smart_city.District;
 import alessio_la_greca_990973.smart_city.SmartCity;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.eclipse.paho.client.mqttv3.*;
 import ride.request.RideRequestMessageOuterClass.RideRequestMessage;
 
+import java.sql.Timestamp;
 import java.util.Random;
 
 public class RideRequestThread implements Runnable{
@@ -13,20 +15,19 @@ public class RideRequestThread implements Runnable{
     private static boolean DEBUG_LOCAL = true;
 
     private int requestDelay = 5000;    //so it can be changed if needed
+    private MqttClient client;
+    private int qos;
 
-
-    @Override
-    public void run() {
-
+    public RideRequestThread(){
         //the request thread must register as publishers on the MQTT broker
-        MqttClient client = null;
+        client = null;
         String broker = "tcp://localhost:1883";
         String clientId = MqttClient.generateClientId();
         String topic1 = "seta/smartcity/rides/district1";
         String topic2 = "seta/smartcity/rides/district2";
         String topic3 = "seta/smartcity/rides/district3";
         String topic4 = "seta/smartcity/rides/district4";
-        int qos = 2;
+        qos = 2;
 
         try {
             client = new MqttClient(broker, clientId);
@@ -49,6 +50,10 @@ public class RideRequestThread implements Runnable{
             System.out.println("excep " + me);
             me.printStackTrace();
         }
+    }
+
+    @Override
+    public void run() {
 
         while(true) {
             //this thread must generate, each five seconds, in a random moment, a ride request. To do so,
@@ -77,7 +82,7 @@ public class RideRequestThread implements Runnable{
                 String last = d.toString().toLowerCase();
                 String topic = "seta/smartcity/rides/" + last;
 
-                //let's now publish the request
+                //let's now generate the request...
                 RideRequestMessage rrm = RideRequestMessage.newBuilder()
                         .setId(ID)
                         .setStartingX(startingX)
@@ -85,14 +90,17 @@ public class RideRequestThread implements Runnable{
                         .setArrivingX(arrivingX)
                         .setArrivingY(arrivingY).build();
 
-                //generate the request and publish it on the MQTT broker
+                //...save it in the pending requests...
+                Seta.addPendingRequest(d, rrm);
+
+                //...and publish it on the MQTT broker
                 MqttMessage message = new MqttMessage(rrm.toByteArray());
 
                 // Set the QoS on the Message
                 message.setQos(qos);
-                System.out.println(clientId + " Publishing request number " + ID + "...");
+                System.out.println("Publishing request number " + ID + "...");
                 client.publish(topic, message);
-                System.out.println(clientId + " Request published!");
+                System.out.println("Request published!");
 
 
                 Thread.sleep(requestDelay - millis);

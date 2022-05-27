@@ -61,6 +61,9 @@ alessio_la_greca_990973/smart_city/taxi/PendingRechargeRequestQueue.java
  alessio_la_greca_990973.smart_city.taxi.PendingRechargeRequestQueue
 alessio_la_greca_990973/simulator/PM10Simulator.java
  alessio_la_greca_990973.simulator.PM10Simulator
+alessio_la_greca_990973/seta/SetaSubscriberThread.java
+ alessio_la_greca_990973.seta.SetaSubscriberThread
+ alessio_la_greca_990973.seta.SetaSubscriberThread$1
 alessio_la_greca_990973/smart_city/taxi/pollution_simulator/PollutionSimulatorThread.java
  alessio_la_greca_990973.smart_city.taxi.pollution_simulator.PollutionSimulatorThread
 alessio_la_greca_990973/seta/RideRequestThread.java
@@ -68,6 +71,16 @@ alessio_la_greca_990973/seta/RideRequestThread.java
 ride/request/RideRequestMessageOuterClass.java
  ride.request.RideRequestMessageOuterClass
  ride.request.RideRequestMessageOuterClass$1
+ ride.request.RideRequestMessageOuterClass$AckFromTaxi
+ ride.request.RideRequestMessageOuterClass$AckFromTaxi$1
+ ride.request.RideRequestMessageOuterClass$AckFromTaxi$Builder
+ ride.request.RideRequestMessageOuterClass$AckFromTaxiOrBuilder
+ ride.request.RideRequestMessageOuterClass$District
+ ride.request.RideRequestMessageOuterClass$District$1
+ ride.request.RideRequestMessageOuterClass$NotifyFromTaxi
+ ride.request.RideRequestMessageOuterClass$NotifyFromTaxi$1
+ ride.request.RideRequestMessageOuterClass$NotifyFromTaxi$Builder
+ ride.request.RideRequestMessageOuterClass$NotifyFromTaxiOrBuilder
  ride.request.RideRequestMessageOuterClass$RideRequestMessage
  ride.request.RideRequestMessageOuterClass$RideRequestMessage$1
  ride.request.RideRequestMessageOuterClass$RideRequestMessage$Builder
@@ -76,11 +89,10 @@ alessio_la_greca_990973/smart_city/taxi/example/TaxiExample.java
  alessio_la_greca_990973.smart_city.taxi.example.TaxiExample
 alessio_la_greca_990973/smart_city/taxi/pollution_simulator/MyBuffer.java
  alessio_la_greca_990973.smart_city.taxi.pollution_simulator.MyBuffer
-alessio_la_greca_990973/server/forclient/TaxiStatisticWithTimestamp.java
- alessio_la_greca_990973.server.forclient.TaxiStatisticWithTimestamp
-alessio_la_greca_990973/smart_city/taxi/threads/IdleThread.java
- alessio_la_greca_990973.smart_city.taxi.threads.IdleThread
- alessio_la_greca_990973.smart_city.taxi.threads.IdleThread$1
+alessio_la_greca_990973/smart_city/taxi/Taxi.java
+ alessio_la_greca_990973.smart_city.taxi.Taxi
+alessio_la_greca_990973/smart_city/taxi/rpcservices/MiscTaxiServiceImpl.java
+ alessio_la_greca_990973.smart_city.taxi.rpcservices.MiscTaxiServiceImpl
 alessio_la_greca_990973/seta/Seta.java
  alessio_la_greca_990973.seta.Seta
 taxis/service/MiscTaxiServiceGrpc.java
@@ -100,13 +112,14 @@ alessio_la_greca_990973/server/fortaxi/TaxiRestService.java
  alessio_la_greca_990973.server.fortaxi.TaxiRestService
 alessio_la_greca_990973/smart_city/taxi/TaxiMain.java
  alessio_la_greca_990973.smart_city.taxi.TaxiMain
-alessio_la_greca_990973/server/fortaxi/datas/statistics/TaxiStatisticsPacket.java
- alessio_la_greca_990973.server.fortaxi.datas.statistics.TaxiStatisticsPacket
+alessio_la_greca_990973/smart_city/taxi/threads/IdleThread.java
+ alessio_la_greca_990973.smart_city.taxi.threads.IdleThread
+ alessio_la_greca_990973.smart_city.taxi.threads.IdleThread$1
 alessio_la_greca_990973/smart_city/taxi/TaxiTaxiRepresentation.java
  alessio_la_greca_990973.smart_city.taxi.TaxiTaxiRepresentation
 alessio_la_greca_990973/server/AdministratorServer.java
  alessio_la_greca_990973.server.AdministratorServer
-alessio_la_greca_990973/smart_city/taxi/rpcservices/MiscTaxiServiceImpl.java
- alessio_la_greca_990973.smart_city.taxi.rpcservices.MiscTaxiServiceImpl
-alessio_la_greca_990973/smart_city/taxi/Taxi.java
- alessio_la_greca_990973.smart_city.taxi.Taxi
+alessio_la_greca_990973/server/forclient/TaxiStatisticWithTimestamp.java
+ alessio_la_greca_990973.server.forclient.TaxiStatisticWithTimestamp
+alessio_la_greca_990973/server/fortaxi/datas/statistics/TaxiStatisticsPacket.java
+ alessio_la_greca_990973.server.fortaxi.datas.statistics.TaxiStatisticsPacket
