@@ -105,9 +105,7 @@ public class Taxi {
             TaxiReplyToJoin reply = clientResponse.getEntity(TaxiReplyToJoin.class);
             currX = reply.getStartingX();
             currY = reply.getStartingY();
-            //TODO: remove
-            currX = 9;
-            currY = 9;
+
 
             List<TaxiServerRepresentation> taxis = reply.getCurrentTaxis();
 

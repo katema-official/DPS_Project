@@ -64,6 +64,7 @@ alessio_la_greca_990973/simulator/PM10Simulator.java
 alessio_la_greca_990973/seta/SetaSubscriberThread.java
  alessio_la_greca_990973.seta.SetaSubscriberThread
  alessio_la_greca_990973.seta.SetaSubscriberThread$1
+ alessio_la_greca_990973.seta.SetaSubscriberThread$2
 alessio_la_greca_990973/smart_city/taxi/pollution_simulator/PollutionSimulatorThread.java
  alessio_la_greca_990973.smart_city.taxi.pollution_simulator.PollutionSimulatorThread
 alessio_la_greca_990973/seta/RideRequestThread.java

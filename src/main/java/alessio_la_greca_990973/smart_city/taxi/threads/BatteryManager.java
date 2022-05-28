@@ -54,18 +54,21 @@ public class BatteryManager implements Runnable{
             if(true){       //TODO: !taxiMustTerminate
                 acks = 0;
                 synchronized (thisTaxi.otherTaxisLock){
+                    currentParticipants = thisTaxi.getOtherTaxis().size();
+                    Thread[] a = new Thread[currentParticipants];
+                    int i = 0;
                     for(Map.Entry<Integer, TaxiTaxiRepresentation> entry : thisTaxi.getOtherTaxis().entrySet()){
-                        //for each taxi that is in my district
-                        if(SmartCity.getDistrict(thisTaxi.getCurrX(), thisTaxi.getCurrY()) ==
-                                SmartCity.getDistrict(entry.getValue().getCurrX(), entry.getValue().getCurrY())){
-                            //I sum 1 to the number of participants from which I expect an ok message
-                            currentParticipants++;
-                            //and I also launch a new thread that will ask that taxi the permission for accessing
-                            //the recharge station
-                            Thread t = new Thread(new BatteryRequest(thisTaxi, this, entry.getValue(),
-                                    timestampOfRequest, currentDistrict));
-                            t.start();
-                        }
+                        //for each taxi that in the city, ask him if I can recharge
+
+                        //and I also launch a new thread that will ask that taxi the permission for accessing
+                        //the recharge station
+                        Thread t = new Thread(new BatteryRequest(thisTaxi, this, entry.getValue(),
+                                timestampOfRequest, currentDistrict));
+                        a[i] = t;
+                        i++;
+                    }
+                    for(Thread t : a){
+                        t.start();
                     }
                 }
 

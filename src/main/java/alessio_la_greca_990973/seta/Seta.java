@@ -10,8 +10,8 @@ import java.util.HashMap;
 public class Seta {
 
     private static int progressive_ID = 0;
-    private static Object progressive_id_lock;
-    private static Object pending_requests_lock;
+    public static Object progressive_id_lock;
+    public static Object pending_requests_lock;
     private static HashMap<District, ArrayList<RideRequestMessage>> pendingRequestsHashMap;
 
     public static void main(String args[]){
@@ -62,6 +62,9 @@ public class Seta {
     }
 
     public static void removePendingRequest(int id, District district){
+        if(district == District.DISTRICT_ERROR){
+            System.out.println("SETA: error in removing request of id " + id + ". The district is unknown!");
+        }
         synchronized (pending_requests_lock){
             ArrayList<RideRequestMessage> requests = pendingRequestsHashMap.get(district);
             RideRequestMessage toRemove = null;
