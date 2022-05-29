@@ -84,7 +84,9 @@ public class BatteryManager implements Runnable{
                     } catch (InterruptedException e) {throw new RuntimeException(e);}
                 }
 
-                //TODO: si ricarica, ovvero, fa la sleep, si sposta, batteria al 100%
+                //TODO: canRecharge.notify potrebbe arrivare anche dal comando di exit. In quel caso,
+                //if(devoUscire), allora basta
+
                 /*Moreover, when a taxi acquires rights
                 to recharge its battery:*/
 
@@ -93,7 +95,7 @@ public class BatteryManager implements Runnable{
                 int[] rechargeCoordinates = SmartCity.getCoordinatesForRechargeStation(
                         SmartCity.getDistrict(thisTaxi.getCurrX(), thisTaxi.getCurrY()));
 
-                int distance = SmartCity.distance(thisTaxi.getCurrX(), thisTaxi.getCurrY(),
+                int distance = (int) SmartCity.distance(thisTaxi.getCurrX(), thisTaxi.getCurrY(),
                         rechargeCoordinates[0], rechargeCoordinates[1]);
 
                 thisTaxi.subtractPercentageFromBatteryLevel(distance);
@@ -118,6 +120,10 @@ public class BatteryManager implements Runnable{
                 synchronized (thisTaxi.stateLock) {
                     thisTaxi.setState(Commons.IDLE);
                     timestampOfRequest = 0;
+                    //we also notify the idle thread that the recharge process has completed
+                    synchronized (thisTaxi.rechargeComplete_lock){
+                        thisTaxi.rechargeComplete_lock.notify();
+                    }
                 }
                 thisTaxi.getQueue().sendOkToAllPendingRequests();
 

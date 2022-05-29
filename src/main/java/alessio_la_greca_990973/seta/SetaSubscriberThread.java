@@ -18,8 +18,6 @@ public class SetaSubscriberThread implements Runnable{
         //this are the topics on which seta subscribes. Here, it will receive
         //from taxis messages that say either they are now in a particular
         //district or the acks about a particular ride
-        String topicMessagesAcks = "seta/smartcity/rides/acks";
-        String topicMessageArrivedInDistrict = "seta/smartcity/rides/notify";
 
         MqttClient client = null;
         String broker = "tcp://localhost:1883";
@@ -49,8 +47,7 @@ public class SetaSubscriberThread implements Runnable{
             me.printStackTrace();
         }
 
-        int qos = 2;
-        subscribe(client, topicMessagesAcks, topicMessageArrivedInDistrict);
+        subscribe(client, Commons.topicMessagesAcks, Commons.topicMessageArrivedInDistrict);
 
     }
 
@@ -83,7 +80,6 @@ public class SetaSubscriberThread implements Runnable{
                         case DISTRICT4: true_d = alessio_la_greca_990973.smart_city.District.DISTRICT4; break;
                         case DISTRICT_ERROR: true_d = alessio_la_greca_990973.smart_city.District.DISTRICT_ERROR; break;
                     }
-                    //TODO: rimanda le pending request del distretto true_d
                     String last = true_d.toString().toLowerCase();
                     String resend_topic = "seta/smartcity/rides/" + last;
                     //now that we have the topic, let's send again the pending requests for that district.

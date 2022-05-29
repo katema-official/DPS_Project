@@ -106,7 +106,7 @@ public class RideRequestThread implements Runnable{
                 Thread.sleep(requestDelay - millis);
 
 
-                debug("Cycle ended after publishing requst number " + ID + ". Restarting...");
+                debug("Cycle ended after publishing request number " + ID + ". Restarting...");
 
 
             } catch (InterruptedException e) {

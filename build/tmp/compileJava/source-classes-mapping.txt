@@ -19,6 +19,14 @@ taxis/service/MiscTaxiServiceOuterClass.java
  taxis.service.MiscTaxiServiceOuterClass$RechargeStationRequest$District
  taxis.service.MiscTaxiServiceOuterClass$RechargeStationRequest$District$1
  taxis.service.MiscTaxiServiceOuterClass$RechargeStationRequestOrBuilder
+ taxis.service.MiscTaxiServiceOuterClass$TaxiCoordinationReply
+ taxis.service.MiscTaxiServiceOuterClass$TaxiCoordinationReply$1
+ taxis.service.MiscTaxiServiceOuterClass$TaxiCoordinationReply$Builder
+ taxis.service.MiscTaxiServiceOuterClass$TaxiCoordinationReplyOrBuilder
+ taxis.service.MiscTaxiServiceOuterClass$TaxiCoordinationRequest
+ taxis.service.MiscTaxiServiceOuterClass$TaxiCoordinationRequest$1
+ taxis.service.MiscTaxiServiceOuterClass$TaxiCoordinationRequest$Builder
+ taxis.service.MiscTaxiServiceOuterClass$TaxiCoordinationRequestOrBuilder
 alessio_la_greca_990973/commons/Commons.java
  alessio_la_greca_990973.commons.Commons
 alessio_la_greca_990973/simulator/Buffer.java
@@ -116,6 +124,7 @@ alessio_la_greca_990973/smart_city/taxi/TaxiMain.java
 alessio_la_greca_990973/smart_city/taxi/threads/IdleThread.java
  alessio_la_greca_990973.smart_city.taxi.threads.IdleThread
  alessio_la_greca_990973.smart_city.taxi.threads.IdleThread$1
+ alessio_la_greca_990973.smart_city.taxi.threads.IdleThread$2
 alessio_la_greca_990973/smart_city/taxi/TaxiTaxiRepresentation.java
  alessio_la_greca_990973.smart_city.taxi.TaxiTaxiRepresentation
 alessio_la_greca_990973/server/AdministratorServer.java

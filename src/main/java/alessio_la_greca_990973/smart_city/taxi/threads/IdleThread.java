@@ -7,9 +7,13 @@ import alessio_la_greca_990973.smart_city.taxi.Taxi;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.eclipse.paho.client.mqttv3.*;
 import ride.request.RideRequestMessageOuterClass;
+import ride.request.RideRequestMessageOuterClass.*;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Scanner;
+import java.util.Set;
 
 public class IdleThread implements Runnable{
 
@@ -19,11 +23,21 @@ public class IdleThread implements Runnable{
     private String clientId;
     private int qos;
 
+
+    private Object incomingRequests_lock;
+    private ArrayList<RideRequestMessage> incomingRequests;
+
+
+
+
+
+
     private boolean DEBUG_LOCAL = true;
 
     public IdleThread(Taxi t){
         thisTaxi = t;
-
+        incomingRequests_lock = new Object();
+        incomingRequests = new ArrayList<>();
         //let's start the MQTT client
         broker = "tcp://localhost:1883";
         clientId = MqttClient.generateClientId();
@@ -45,15 +59,14 @@ public class IdleThread implements Runnable{
 
                 public void messageArrived(String topic, MqttMessage message) throws InvalidProtocolBufferException {
                     // Called when a message arrives from the server that matches any subscription made by the client
-                    String time = new Timestamp(System.currentTimeMillis()).toString();
-                    RideRequestMessageOuterClass.RideRequestMessage rrm = RideRequestMessageOuterClass.RideRequestMessage.parseFrom(message.getPayload());
-                    String receivedMessage = rrm.getId() + " - (" + rrm.getStartingX() + "," + rrm.getStartingY() + ") - (" + +rrm.getArrivingX() + "," + rrm.getArrivingY() + ")";
-                    System.out.println(clientId + " Received a Message! - Callback - Thread PID: " + Thread.currentThread().getId() +
-                            "\n\tTime:    " + time +
-                            "\n\tTopic:   " + topic +
-                            "\n\tMessage: " + receivedMessage +
-                            "\n\tQoS:     " + message.getQos() + "" +
-                            "\n\tTime in milliseconds: " + System.currentTimeMillis() + "\n");
+
+                    //when a message arrives, it's because we received a ride request for the district in which we were
+                    //at the moment the request was issued. We simply append this message to the queue and notify the
+                    //thread that a new request has arrived
+                    RideRequestMessage rrm = RideRequestMessage.parseFrom(message.getPayload());
+                    addIncomingRequest(rrm);
+                    //String receivedMessage = rrm.getId() + " - (" + rrm.getStartingX() + "," + rrm.getStartingY() + ") - (" + +rrm.getArrivingX() + "," + rrm.getArrivingY() + ")";
+                    debug("Taxi " + thisTaxi.getId() + " received a request for position (" + rrm.getStartingX() + "," + rrm.getStartingY() + ")");
 
                 }
 
@@ -75,17 +88,78 @@ public class IdleThread implements Runnable{
             System.out.println("excep " + me);
             me.printStackTrace();
         }
+
+        //first thing first: the taxi subscribes to the district to which it belongs right now
+        District d = SmartCity.getDistrict(thisTaxi.getCurrX(), thisTaxi.getCurrY());
+        subscribeToADistrictTopic(d);
+
+        //now, the Taxi can notify Seta that he is now present in this initial district.
+        RideRequestMessageOuterClass.District true_d = RideRequestMessageOuterClass.District.DISTRICT_ERROR;
+        switch(d){
+            case DISTRICT1: true_d = RideRequestMessageOuterClass.District.DISTRICT1; break;
+            case DISTRICT2: true_d = RideRequestMessageOuterClass.District.DISTRICT2; break;
+            case DISTRICT3: true_d = RideRequestMessageOuterClass.District.DISTRICT3; break;
+            case DISTRICT4: true_d = RideRequestMessageOuterClass.District.DISTRICT4; break;
+            case DISTRICT_ERROR: true_d = RideRequestMessageOuterClass.District.DISTRICT_ERROR; break;
+        }
+        try {
+            client.publish(Commons.topicMessageArrivedInDistrict, new MqttMessage(NotifyFromTaxi.newBuilder().setDistrict(true_d).build().toByteArray()));
+        } catch (MqttException e) {throw new RuntimeException(e);}
+
         debug("finished the constructor");
     }
 
     @Override
     public void run() {
-        //first thing first: the taxi subscribes to the district to which it belongs right now
-        District d = SmartCity.getDistrict(thisTaxi.getCurrX(), thisTaxi.getCurrY());
-        subscribeToADistrictTopic(d);
+
 
         debug("hi there");
 
+        while(true) { //TODO: !taxiHasToTerminate
+            //first of all, let's check if we have to recharge the battery
+            if(thisTaxi.getBatteryLevel() <= 30){
+                //if so, now we have to recharge
+                synchronized (thisTaxi.alertBatteryRecharge) {
+                    thisTaxi.alertBatteryRecharge.notify();
+                }
+
+                //we then wait until the recharge is complete
+                synchronized (thisTaxi.rechargeComplete_lock){
+                    try {
+                        thisTaxi.rechargeComplete_lock.wait();
+                    } catch (InterruptedException e) {throw new RuntimeException(e);}
+                }
+
+                //TODO: potrei essere svegliato anche quando in realtà devo uscire. In tal caso,
+                //if(devoUscire), basta
+            }
+
+
+
+            //if there are pending ride requests, take the first available one and ask the others about it.
+            //clearly, the one chosen must be of my current district
+            RideRequestMessage currentRideRequest;
+            while((currentRideRequest = getIncomingRequest()) != null){ //while there is at least one pending request...
+                //let's start the election process. I have to contact all the taxis currently present in the city
+                //and ask them if I can take care of this ride.
+                askOtherTaxisAboutARide(currentRideRequest);
+            }
+
+            synchronized (incomingRequests_lock){
+                try {
+                    //we wait until there is a new request in the queue.
+                    incomingRequests_lock.wait();
+                } catch (InterruptedException e) {throw new RuntimeException(e);}
+            }
+
+
+
+        }
+        //This thread has the role of hearing the ride requests it receives and to fulfill them.
+        //fulfilling means also coordinating with other taxis and eventually letting someone else take care of them.
+
+
+        /*
         //just for trying
 
         while(thisTaxi.getBatteryLevel() >= 30){
@@ -103,8 +177,7 @@ public class IdleThread implements Runnable{
         synchronized (thisTaxi.alertBatteryRecharge) {
             thisTaxi.alertBatteryRecharge.notify();
         }
-
-
+        */
 
 
     }
@@ -155,6 +228,27 @@ public class IdleThread implements Runnable{
     }
 
 
+
+    public void addIncomingRequest(RideRequestMessage rrm){
+        synchronized (incomingRequests_lock){
+            incomingRequests.add(rrm);
+            incomingRequests_lock.notify();
+        }
+    }
+
+    public RideRequestMessage getIncomingRequest(){
+        RideRequestMessage ret = null;
+        synchronized (incomingRequests_lock){
+            if(incomingRequests.size() > 0) {
+                ret = incomingRequests.remove(0);
+            }
+        }
+        return ret;
+    }
+
+    private void askOtherTaxisAboutARide(RideRequestMessage currentRideRequest){
+
+    }
 
 
 }

@@ -38,10 +38,27 @@ message RechargeStationReply{
   bool ok = 1;
 }
 
+//---------------------------
+
+
+message TaxiCoordinationRequest{
+  int32 idRideRequest = 1;  //the request I'd like to satisfy
+  int32 x = 2;
+  int32 y = 3;  //these are my current coordinates
+  int32 batteryLevel = 4;   //this is my current battery level
+  int32 taxiId = 5;         //this is my id as a taxi
+}
+
+message TaxiCoordinationReply{
+  bool ok = 1;  //true = ok, you can have this ride, 0 = no, you can't satisfy this ride
+}
+
 service MiscTaxiService{
   rpc welcomeImANewTaxi(NewTaxiPresentation) returns (OldTaxiPresentation);
 
   rpc mayIRecharge(RechargeStationRequest) returns (RechargeStationReply);
+
+  rpc mayITakeCareOfThisRequest(TaxiCoordinationRequest) returns (TaxiCoordinationReply);
 }
 
 

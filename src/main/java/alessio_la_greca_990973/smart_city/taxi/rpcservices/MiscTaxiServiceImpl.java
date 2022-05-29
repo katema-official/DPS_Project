@@ -91,6 +91,44 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
         }
     }
 
+    @Override
+    public void mayITakeCareOfThisRequest(TaxiCoordinationRequest input, StreamObserver<TaxiCoordinationReply> responseObserver){
+        //this method is invoked when another taxi in the city asks me to take care of a ride.
+        //I will either respond to him with an ok message ("yes, you can take care of this") or a not ok message
+        //("no, I will handle this request if no one has better characteristics than me")
+
+        TaxiCoordinationReply yes = TaxiCoordinationReply.newBuilder().setOk(true).build();
+        TaxiCoordinationReply no = TaxiCoordinationReply.newBuilder().setOk(false).build();
+        //if the request comes from a taxi of another district, I can reply ok to him immediately
+        if(SmartCity.getDistrict(taxi.getCurrX(), taxi.getCurrY()) != SmartCity.getDistrict(input.getX(), input.getY())){
+            responseObserver.onNext(yes);
+            responseObserver.onCompleted();
+        }
+
+        //if I already satisfied this request in the past, I can reply not ok to him immediately
+        if(taxi.satisfiedRides.contains(input.getTaxiId())){
+            responseObserver.onNext(no);
+            responseObserver.onCompleted();
+        }
+
+        //if instead the request is of my same district AND I haven't satisfied it already, then...
+        //we are assuming that taxis of the same district receive the requests for their district in the same order.
+        //For instance, if the ride requests with ID 10 and 11 are published, and they both are relative to district "i",
+        //all taxis of district "i" will receive before request 10 and then request 11. So, if a taxi receives a request
+        //relative to a ride with ID greater than the one it's currently processing, it must put that request on a
+        //waiting list (read as: "sorry, I can't reply to you right now because I still haven't reached taht request yet,
+        //but when I'll have, I'll respond to you asap").
+        //With the same logic, a taxi shouldn't receive a request from a taxi of the same district with ID (of the request)
+        //lower than the one it is currently processing. But, if it does, let's just answer him "...yeah, you can take
+        //care of that request...", but we know that some other taxi will have replied to him with the no message saying
+        //"sorry bro, I already handled that"
+        if(){//la richiesta che mi arriva ha un id minore di quello della richiesta che sto gestendo in questo momento
+            responseObserver.onNext(yes);
+            responseObserver.onCompleted();
+        }
+
+    }
+
     private void debug(String msg){
         if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL){
             System.out.println("debug: " + msg);

@@ -23,6 +23,7 @@ import taxis.service.MiscTaxiServiceOuterClass.*;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -66,6 +67,12 @@ public class Taxi {
 
 
 
+    public Object rechargeComplete_lock;
+
+
+
+    public HashSet<Integer> satisfiedRides;
+
     public Taxi(int ID, String host) {
         this.ID = ID;
         this.host = host;
@@ -81,6 +88,9 @@ public class Taxi {
         queue = new PendingRechargeRequestQueue();
         batteryListener = new BatteryListener(this, queue);
         batteryManager = new BatteryManager(this, batteryListener);
+
+        rechargeComplete_lock = new Object();
+        satisfiedRides = new HashSet<>();
         setState(Commons.INITIALIZING);
     }
 
@@ -147,8 +157,6 @@ public class Taxi {
             IdleThread it = new IdleThread(this);
             Thread t1 = new Thread(it);
             t1.start();
-
-
 
 
 
