@@ -105,8 +105,10 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
             responseObserver.onCompleted();
         }
 
-        //if I already satisfied this request in the past, I can reply not ok to him immediately
-        if(taxi.satisfiedRides.contains(input.getTaxiId())){
+        //if the request that arrived to me right now is from a taxi of my same district and has an ID
+        //lower than the highest request I satisfied in this district, I can reply to him immediately
+        //saying "no, don't bother about it, we other taxis already took care about it
+        if(taxi.satisfiedRides.get(SmartCity.getDistrict(taxi.getCurrX(), taxi.getCurrY())) > input.getIdRideRequest()){
             responseObserver.onNext(no);
             responseObserver.onCompleted();
         }
@@ -116,15 +118,17 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
         //For instance, if the ride requests with ID 10 and 11 are published, and they both are relative to district "i",
         //all taxis of district "i" will receive before request 10 and then request 11. So, if a taxi receives a request
         //relative to a ride with ID greater than the one it's currently processing, it must put that request on a
-        //waiting list (read as: "sorry, I can't reply to you right now because I still haven't reached taht request yet,
+        //waiting list (read as: "sorry, I can't reply to you right now because I still haven't reached that request yet,
         //but when I'll have, I'll respond to you asap").
-        //With the same logic, a taxi shouldn't receive a request from a taxi of the same district with ID (of the request)
-        //lower than the one it is currently processing. But, if it does, let's just answer him "...yeah, you can take
+        //If instead a taxi receives a request with ID lower than that of the one is currently processing, but higher
+        //than the one of the last satisfied ride on this district, it must respond "...yeah, you can take
         //care of that request...", but we know that some other taxi will have replied to him with the no message saying
         //"sorry bro, I already handled that"
-        if(){//la richiesta che mi arriva ha un id minore di quello della richiesta che sto gestendo in questo momento
+        if(input.getIdRideRequest() < taxi.currentRequestBeingProcessed){
             responseObserver.onNext(yes);
             responseObserver.onCompleted();
+        }else{
+            //let's save those requests and answer them later
         }
 
     }

@@ -3,6 +3,7 @@ package alessio_la_greca_990973.smart_city.taxi;
 import alessio_la_greca_990973.commons.Commons;
 import alessio_la_greca_990973.server.fortaxi.datas.TaxiReplyToJoin;
 import alessio_la_greca_990973.server.fortaxi.datas.TaxiServerRepresentation;
+import alessio_la_greca_990973.smart_city.District;
 import alessio_la_greca_990973.smart_city.taxi.pollution_simulator.PollutionSimulatorThread;
 import alessio_la_greca_990973.smart_city.taxi.rpcservices.MiscTaxiServiceImpl;
 import alessio_la_greca_990973.smart_city.taxi.threads.BatteryListener;
@@ -70,8 +71,16 @@ public class Taxi {
     public Object rechargeComplete_lock;
 
 
+    //map that associates to each district the highest (and last) satisfied ride
+    //by this taxi
+    public HashMap<District, Integer> satisfiedRides;
 
-    public HashSet<Integer> satisfiedRides;
+
+    //used to track the current ID of the request for which i'm running the election algorithm
+    public int currentRequestBeingProcessed;
+    //uset to track the other Taxis participating to this election
+    public HashMap<Integer, TaxiTaxiRepresentation> otherTaxisInThisElection;
+    public Object election_lock;
 
     public Taxi(int ID, String host) {
         this.ID = ID;
@@ -90,7 +99,11 @@ public class Taxi {
         batteryManager = new BatteryManager(this, batteryListener);
 
         rechargeComplete_lock = new Object();
-        satisfiedRides = new HashSet<>();
+        satisfiedRides = new HashMap<District, Integer>();
+        satisfiedRides.put(District.DISTRICT1, -1);
+        satisfiedRides.put(District.DISTRICT2, -1);
+        satisfiedRides.put(District.DISTRICT3, -1);
+        satisfiedRides.put(District.DISTRICT4, -1);
         setState(Commons.INITIALIZING);
     }
 
@@ -276,6 +289,10 @@ public class Taxi {
 
     public BatteryListener getBatteryListener() {
         return batteryListener;
+    }
+
+    public Server getTaxiService() {
+        return taxiService;
     }
 
     public int getState() {
