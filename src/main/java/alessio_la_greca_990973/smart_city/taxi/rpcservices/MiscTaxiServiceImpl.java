@@ -6,6 +6,7 @@ import alessio_la_greca_990973.smart_city.SmartCity;
 import alessio_la_greca_990973.smart_city.taxi.Taxi;
 import alessio_la_greca_990973.smart_city.taxi.TaxiTaxiRepresentation;
 import alessio_la_greca_990973.smart_city.taxi.threads.BatteryListener;
+import alessio_la_greca_990973.smart_city.taxi.threads.IdleThread;
 import io.grpc.stub.StreamObserver;
 import taxis.service.MiscTaxiServiceGrpc.*;
 import taxis.service.MiscTaxiServiceOuterClass.*;
@@ -15,10 +16,12 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
     private Taxi taxi;
     private BatteryListener batteryListener;
     private boolean DEBUG_LOCAL = true;
+    private IdleThread idleThread;
 
-    public MiscTaxiServiceImpl(Taxi taxi, BatteryListener bl){
+    public MiscTaxiServiceImpl(Taxi taxi, BatteryListener bl, IdleThread it){
         this.taxi = taxi;
         this.batteryListener = bl;
+        this.idleThread = it;
     }
 
     @Override
@@ -105,6 +108,12 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
             responseObserver.onCompleted();
         }
 
+        //if I'm already involved in a ride, I can reply ok immediately
+        if(taxi.getState() == Commons.RIDING){
+            responseObserver.onNext(yes);
+            responseObserver.onCompleted();
+        }
+
         //if the request that arrived to me right now is from a taxi of my same district and has an ID
         //lower than the highest request I satisfied in this district, I can reply to him immediately
         //saying "no, don't bother about it, we other taxis already took care about it
@@ -124,11 +133,32 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
         //than the one of the last satisfied ride on this district, it must respond "...yeah, you can take
         //care of that request...", but we know that some other taxi will have replied to him with the no message saying
         //"sorry bro, I already handled that"
-        if(input.getIdRideRequest() < taxi.currentRequestBeingProcessed){
-            responseObserver.onNext(yes);
+        if(input.getIdRideRequest() < idleThread.currentRequestBeingProcessed){
+            responseObserver.onNext(yes);   //someone else will answer "no"
             responseObserver.onCompleted();
-        }else{
+        }else if(input.getIdRideRequest() > idleThread.currentRequestBeingProcessed){
             //let's save those requests and answer them later
+            idleThread.addPendingRideElectionRequest(input, responseObserver);
+
+        }else{
+            //the request is from a taxi from my same district AND the id of the taxi request is the same as the one
+            //I'm currently considering.
+            //The last question is: is this taxi in my set of participating taxis for this election?
+            if(!idleThread.isThisTaxiInThisElection(input.getTaxiId())){
+                //if no, let's just tell him that another taxi between all of us will take care of this ride
+                responseObserver.onNext(no);   //someone else will answer "no"
+                responseObserver.onCompleted();
+            }else{
+                //if yes, let's see: who's closer? Who has the most battery? Who has the highest ID?
+                boolean res = idleThread.compareTaxis(input);
+                if(res){
+                    responseObserver.onNext(yes);
+                    responseObserver.onCompleted();
+                }else{
+                    responseObserver.onNext(no);
+                    responseObserver.onCompleted();
+                }
+            }
         }
 
     }

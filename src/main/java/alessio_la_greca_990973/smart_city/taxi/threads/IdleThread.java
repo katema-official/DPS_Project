@@ -8,6 +8,7 @@ import alessio_la_greca_990973.smart_city.taxi.TaxiTaxiRepresentation;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.stub.StreamObserver;
 import org.eclipse.paho.client.mqttv3.*;
 import ride.request.RideRequestMessageOuterClass;
 import ride.request.RideRequestMessageOuterClass.*;
@@ -31,6 +32,19 @@ public class IdleThread implements Runnable{
 
 
 
+    //used to track the current ID of the request for which i'm running the election algorithm
+    public int currentRequestBeingProcessed;
+    public RideRequestMessage rrmCurrentRequestBeingProcessed;
+    //uset to track the other Taxis participating to this election
+    public HashMap<Integer, TaxiTaxiRepresentation> otherTaxisInThisElection;
+    public Object election_lock;
+
+
+    //list that contains the pending "election" requests, that is, requests
+    //for understanding who has to take care of a specific request that this Taxi
+    //still hasn't processed.
+    private HashMap<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> pendingRideElectionRequests;
+    private Object pendingRideElectionRequests_lock;
 
     private boolean DEBUG_LOCAL = true;
 
@@ -42,6 +56,12 @@ public class IdleThread implements Runnable{
         broker = "tcp://localhost:1883";
         clientId = MqttClient.generateClientId();
         qos = 2;
+        pendingRideElectionRequests = new HashMap<>();
+
+        currentRequestBeingProcessed = -1;
+        rrmCurrentRequestBeingProcessed = null;
+        election_lock = new Object();
+        pendingRideElectionRequests_lock = new Object();
 
         try {
             client = new MqttClient(broker, clientId);
@@ -142,18 +162,35 @@ public class IdleThread implements Runnable{
             if((currentRideRequest = getIncomingRequest()) != null){ //if there is at least one pending request...
                 //I save that this is the request I'm taking care of right now.
                 synchronized (thisTaxi.stateLock) {
-                    thisTaxi.currentRequestBeingProcessed = currentRideRequest.getId();
+                    currentRequestBeingProcessed = currentRideRequest.getId();
+                    rrmCurrentRequestBeingProcessed = currentRideRequest;
                     thisTaxi.setState(Commons.ELECTING);
                 }
                 //let's start the election process. I have to contact all the taxis currently present in the city
                 //and ask them if I can take care of this ride.
-                boolean ret = askOtherTaxisAboutARide(currentRideRequest);
-                //(in any case, the election is finished)
-                thisTaxi.currentRequestBeingProcessed = -1;
-                //when ret=true, it means I've been chosen to take care of this ride request
+
+                //BUT, before doing that, we have to answer to eventual pending requests for rides arrived in the
+                //past. If we reply "yes" to even one of them, it means that we won't anyway take care of this
+                //request.
+                HashMap<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> pendingElections =
+                        getPendingRideElectionRequestForSpecificRequest(currentRequestBeingProcessed);
+                boolean stop = false;
+                for (Map.Entry<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> e :
+                    pendingElections.entrySet()){
+                        stop = compareTaxis(e.getKey()) || stop;
+                }
+
+                boolean ret = false;
+                if(!stop) {
+
+                    ret = askOtherTaxisAboutARide(currentRideRequest);
+                    //when ret=true, it means I've been chosen to take care of this ride request
+                }
+
                 if(ret){
                     synchronized (thisTaxi.stateLock) {
-                        thisTaxi.currentRequestBeingProcessed = -1;
+                        currentRequestBeingProcessed = -1;
+                        rrmCurrentRequestBeingProcessed = null;
                         thisTaxi.setState(Commons.RIDING);
                         thisTaxi.satisfiedRides.put(
                                 SmartCity.getDistrict(thisTaxi.getCurrX(), thisTaxi.getCurrY()),
@@ -194,8 +231,8 @@ public class IdleThread implements Runnable{
                                 currentRideRequest.getArrivingX(), currentRideRequest.getArrivingY());
                         subscribeToADistrictTopic(newDistrict);
 
-                        //3) ask to SETA to send me the pendig requests of the district in which
-                        //I'm about to go (I prepare myself for after the ride
+                        //3) ask to SETA to send me the pending requests of the district in which
+                        //I'm about to go (I prepare myself for after the ride)
                         d = RideRequestMessageOuterClass.District.DISTRICT_ERROR;
                         switch (newDistrict) {
                             case DISTRICT1:
@@ -226,8 +263,9 @@ public class IdleThread implements Runnable{
 
                 }else{
                     synchronized (thisTaxi.stateLock) {
-                        thisTaxi.currentRequestBeingProcessed = -1;
-                        thisTaxi.setState(Commons.ELECTING);
+                        currentRequestBeingProcessed = -1;
+                        rrmCurrentRequestBeingProcessed = null;
+                        thisTaxi.setState(Commons.IDLE);
                     }
                 }
 
@@ -328,11 +366,13 @@ public class IdleThread implements Runnable{
 
     public void addIncomingRequest(RideRequestMessage rrm){
         synchronized (incomingRequests_lock){
-            //add the request only if it is not already present OR we know it's already been satisfied
+            //add the request only if we know it's not already been satisfied OR it is not already present
+            if(thisTaxi.satisfiedRides.get(SmartCity.getDistrict(rrm.getStartingX(), rrm.getStartingY())) >
+                    rrm.getId()){
+                return;
+            }
             for(RideRequestMessage req : incomingRequests){
-                if(req.getId() == rrm.getId() ||
-                    thisTaxi.satisfiedRides.get(SmartCity.getDistrict(rrm.getStartingX(), rrm.getStartingY())) >
-                        rrm.getId()){
+                if(req.getId() == rrm.getId()){
                     return;
                 }
             }
@@ -365,10 +405,10 @@ public class IdleThread implements Runnable{
 
     private boolean askOtherTaxisAboutARide(RideRequestMessage currentRideRequest){
         synchronized (thisTaxi.otherTaxisLock) {
-            thisTaxi.otherTaxisInThisElection = new HashMap<>(thisTaxi.getOtherTaxis());
+            otherTaxisInThisElection = new HashMap<>(thisTaxi.getOtherTaxis());
         }
-        synchronized(thisTaxi.election_lock){
-            for(Map.Entry<Integer, TaxiTaxiRepresentation> entry : thisTaxi.otherTaxisInThisElection.entrySet()){
+        synchronized(election_lock){
+            for(Map.Entry<Integer, TaxiTaxiRepresentation> entry : otherTaxisInThisElection.entrySet()){
                 //for each taxi that in the city, ask him if you can take care of request
                 String host = entry.getValue().getHostname();
                 int port = entry.getValue().getListeningPort();
@@ -393,10 +433,128 @@ public class IdleThread implements Runnable{
                 }
             }
         }
-        //if instead all of the other taxis replied to me with an actual ok message,
-        //yeah, I can take care of this ride!
+        //if instead all of the other taxis replied to me with an actual ok message (happens also if there were not
+        //other taxis to contact), yeah, I can take care of this ride!
         return true;
     }
 
+
+
+
+
+
+
+
+    public boolean isThisTaxiInThisElection(int taxiId){
+        if(otherTaxisInThisElection.containsKey(taxiId)){
+            return true;
+        }
+        return false;
+    }
+
+
+
+
+
+
+
+
+    public void addPendingRideElectionRequest(TaxiCoordinationRequest k, StreamObserver<TaxiCoordinationReply> v){
+        synchronized (pendingRideElectionRequests_lock) {
+            pendingRideElectionRequests.put(k, v);
+        }
+    }
+
+    public HashMap<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> getPendingRideElectionRequestForSpecificRequest(int reqId){
+        HashMap<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> ret = new HashMap<>();
+        synchronized (pendingRideElectionRequests_lock) {
+            for (Map.Entry<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> e :
+                    pendingRideElectionRequests.entrySet()) {
+                if (e.getKey().getIdRideRequest() == reqId) {
+                    ret.put(e.getKey(), e.getValue());
+                }
+            }
+
+            //now we delete these pending requests from the hashmap of pending requests
+            for (Map.Entry<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> e :
+                    pendingRideElectionRequests.entrySet()) {
+                pendingRideElectionRequests.remove(e.getKey());
+            }
+        }
+        return ret;
+
+    }
+
+    /*public TaxiCoordinationRequest getMinimumPendingRideElectionRequestsInput(){
+        int min = Integer.MAX_VALUE;
+        TaxiCoordinationRequest ret = null;
+        for(Map.Entry<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> e :
+                pendingRideElectionRequests.entrySet()){
+            if(e.getKey().getIdRideRequest() < min){
+                min = e.getKey().getIdRideRequest();
+                ret = e.getKey();
+            }
+        }
+        return ret;
+    }
+
+    //this also deletes the pending request from the hashmap
+    public StreamObserver<TaxiCoordinationReply> getMinimumPendingRideElectionRequestsStreamObserver(){
+        int min = Integer.MAX_VALUE;
+        StreamObserver<TaxiCoordinationReply> ret = null;
+        TaxiCoordinationRequest toRemove = null;
+        for(Map.Entry<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> e :
+                pendingRideElectionRequests.entrySet()){
+            if(e.getKey().getIdRideRequest() < min){
+                min = e.getKey().getIdRideRequest();
+                ret = e.getValue();
+                toRemove = e.getKey();
+            }
+        }
+        pendingRideElectionRequests.remove(toRemove);
+        return ret;
+    }*/
+
+
+
+
+
+
+
+
+    //false = I win (I will maybe take care of this request)
+    //true = the other wins (you will not, for sure, take care of this request)
+    public boolean compareTaxis(TaxiCoordinationRequest other){
+        Taxi me = thisTaxi;
+
+        //*the Taxi must have the minimum distance from the starting point of
+        //the ride*
+        double myDistance = SmartCity.distance(me.getCurrX(), me.getCurrY(),
+                rrmCurrentRequestBeingProcessed.getStartingX(), rrmCurrentRequestBeingProcessed.getStartingY());
+        double otherDistance = SmartCity.distance(other.getX(), other.getY(),
+                rrmCurrentRequestBeingProcessed.getStartingX(), rrmCurrentRequestBeingProcessed.getStartingY());
+        if(myDistance - otherDistance < 0.01){
+            return false;
+        }else if(myDistance - otherDistance > 0.01){
+            return true;
+        }else{
+            //*if more taxis meet the previous criteria, it must be chosen among them
+            //the Taxi with the highest battery level*
+            if(me.getBatteryLevel() > other.getBatteryLevel()){
+                return false;
+            }else if (me.getBatteryLevel() < other.getBatteryLevel()){
+                return true;
+            }else{
+                //*if more taxis meet the previous criteria, it must be chosen among them
+                //the Taxi with the highest ID*
+                if(me.getId() > other.getTaxiId()){
+                    return false;
+                }else{
+                    return true;
+                }
+            }
+        }
+
+    }
 
 }

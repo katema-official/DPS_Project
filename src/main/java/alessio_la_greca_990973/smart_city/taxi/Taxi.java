@@ -76,11 +76,7 @@ public class Taxi {
     public HashMap<District, Integer> satisfiedRides;
 
 
-    //used to track the current ID of the request for which i'm running the election algorithm
-    public int currentRequestBeingProcessed;
-    //uset to track the other Taxis participating to this election
-    public HashMap<Integer, TaxiTaxiRepresentation> otherTaxisInThisElection;
-    public Object election_lock;
+
 
     public Taxi(int ID, String host) {
         this.ID = ID;
@@ -158,7 +154,9 @@ public class Taxi {
 
             //(I add this) now that I have the infos about the other taxis, I can open my gRPC service to other taxis,
             //so that future taxis will be able to contact me and ask me my position (they will also tell me their initial position)
-            taxiService = ServerBuilder.forPort(getPort()).addService(new MiscTaxiServiceImpl(this, batteryListener)).build();
+            IdleThread it = new IdleThread(this);
+
+            taxiService = ServerBuilder.forPort(getPort()).addService(new MiscTaxiServiceImpl(this, batteryListener, it)).build();
             taxiService.start();
             //taxiService.awaitTermination();
 
@@ -167,7 +165,6 @@ public class Taxi {
             t2.start();
 
             /*Finally, the taxi subscribes to the MQTT topic of its district*/
-            IdleThread it = new IdleThread(this);
             Thread t1 = new Thread(it);
             t1.start();
 
