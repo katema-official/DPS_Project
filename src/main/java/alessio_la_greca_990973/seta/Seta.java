@@ -1,5 +1,6 @@
 package alessio_la_greca_990973.seta;
 
+import alessio_la_greca_990973.commons.Commons;
 import alessio_la_greca_990973.smart_city.District;
 import ride.request.RideRequestMessageOuterClass.*;
 
@@ -8,6 +9,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Seta {
+
+    private static boolean DEBUG_LOCAL = true;
 
     private static int progressive_ID = 0;
     public static Object progressive_id_lock;
@@ -76,7 +79,19 @@ public class Seta {
             if(toRemove != null){
                 requests.remove(id);
                 pendingRequestsHashMap.put(district, requests);
+                debug("Seta - removed pending request " + id + " from district " + district);
             }
+
+        }
+    }
+
+
+
+
+
+    private static void debug(String msg){
+        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL){
+            System.out.println("debug: " + msg);
         }
     }
 

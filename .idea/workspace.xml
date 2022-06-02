@@ -6,8 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="db07cb2b-569d-4f04-af1c-f7bbfe10a618" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/seta/RideRequestThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/seta/RideRequestThread.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/seta/Seta.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/seta/Seta.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/Taxi.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/Taxi.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/rpcservices/MiscTaxiServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/rpcservices/MiscTaxiServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/BatteryManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/BatteryManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/IdleThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/IdleThread.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -46,22 +49,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "WebServerToolWindowFactoryState": "false",
-    "last_opened_file_path": "D:/Progetto_DPS_Alessio_La_Greca",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Progetto_DPS_Alessio_La_Greca&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\Jacopo\Desktop\Progetto_DPS_Alessio_La_Greca\src\main\java\alessio_la_greca_990973\simulator" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.TaxiMain">
+  <component name="RunManager" selected="Application.Seta">
     <configuration name="AdministratorClient" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="alessio_la_greca_990973.client.AdministratorClient" />
       <module name="DPS_project_2022.main" />
@@ -75,38 +78,38 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="ClientExample" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="alessio_la_greca_990973.client.ClientExample" />
-      <module name="DPS_project_2022.main" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="alessio_la_greca_990973.client.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="TaxiMain" type="Application" factoryName="Application" singleton="false" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="alessio_la_greca_990973.smart_city.taxi.TaxiMain" />
-      <module name="DPS_project_2022.main" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="alessio_la_greca_990973.smart_city.taxi.pollution_simulator.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="alessio_la_greca_990973.server.AdministratorServer" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+    <configuration name="AdministratorServer" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="alessio_la_greca_990973.server.AdministratorServer" />
       <module name="DPS_project_2022.main" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="alessio_la_greca_990973.server.fortaxi.*" />
+          <option name="PATTERN" value="alessio_la_greca_990973.server.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Seta" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="alessio_la_greca_990973.seta.Seta" />
+      <module name="DPS_project_2022.main" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="alessio_la_greca_990973.seta.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="alessio_la_greca_990973.smart_city.taxi.TaxiMain" type="Application" factoryName="Application" singleton="false" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="alessio_la_greca_990973.smart_city.taxi.TaxiMain" />
+      <module name="DPS_project_2022.main" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="alessio_la_greca_990973.smart_city.taxi.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -128,18 +131,19 @@
       </method>
     </configuration>
     <list>
-      <item itemvalue="Application.TaxiMain" />
+      <item itemvalue="Application.AdministratorServer" />
+      <item itemvalue="Application.Seta" />
+      <item itemvalue="Application.alessio_la_greca_990973.smart_city.taxi.TaxiMain" />
       <item itemvalue="Application.alessio_la_greca_990973.smart_city.taxi.example.TaxiExample" />
       <item itemvalue="Application.AdministratorClient" />
-      <item itemvalue="Application.alessio_la_greca_990973.server.AdministratorServer" />
-      <item itemvalue="Application.ClientExample" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.AdministratorServer" />
+        <item itemvalue="Application.alessio_la_greca_990973.smart_city.taxi.TaxiMain" />
+        <item itemvalue="Application.Seta" />
         <item itemvalue="Application.alessio_la_greca_990973.smart_city.taxi.example.TaxiExample" />
         <item itemvalue="Application.AdministratorClient" />
-        <item itemvalue="Application.ClientExample" />
-        <item itemvalue="Application.alessio_la_greca_990973.server.AdministratorServer" />
       </list>
     </recent_temporary>
   </component>
@@ -186,6 +190,7 @@
       <workItem from="1653986823393" duration="6373000" />
       <workItem from="1654086125692" duration="3039000" />
       <workItem from="1654114405922" duration="4452000" />
+      <workItem from="1654153506210" duration="10107000" />
     </task>
     <servers />
   </component>

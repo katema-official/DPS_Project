@@ -106,23 +106,34 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
         if(SmartCity.getDistrict(taxi.getCurrX(), taxi.getCurrY()) != SmartCity.getDistrict(input.getX(), input.getY())){
             responseObserver.onNext(yes);
             responseObserver.onCompleted();
+            debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +
+                    "it's from another district, so yes");
+            return;
+        }
+
+        //if the request that arrived to me right now is from a taxi of my same district and has an ID
+        //lower or equal than the highest request I satisfied in this district, I can reply to him immediately
+        //saying "no, don't bother about it, we other taxis already took care about it
+        if(taxi.satisfiedRides.get(SmartCity.getDistrict(taxi.getCurrX(), taxi.getCurrY())) >= input.getIdRideRequest()){
+            responseObserver.onNext(no);
+            responseObserver.onCompleted();
+            debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +
+                    "I know this request has already been satisfied, so no");
+            return;
         }
 
         //if I'm already involved in a ride, I can reply ok immediately
         if(taxi.getState() == Commons.RIDING){
             responseObserver.onNext(yes);
             responseObserver.onCompleted();
+            debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +
+                    "I'm riding, so yes");
+            return;
         }
 
-        //if the request that arrived to me right now is from a taxi of my same district and has an ID
-        //lower than the highest request I satisfied in this district, I can reply to him immediately
-        //saying "no, don't bother about it, we other taxis already took care about it
-        if(taxi.satisfiedRides.get(SmartCity.getDistrict(taxi.getCurrX(), taxi.getCurrY())) > input.getIdRideRequest()){
-            responseObserver.onNext(no);
-            responseObserver.onCompleted();
-        }
 
-        //if instead the request is of my same district AND I haven't satisfied it already, then...
+
+        //if instead the request is of my same district AND I haven't satisfied it already AND I'm not riding, then...
         //we are assuming that taxis of the same district receive the requests for their district in the same order.
         //For instance, if the ride requests with ID 10 and 11 are published, and they both are relative to district "i",
         //all taxis of district "i" will receive before request 10 and then request 11. So, if a taxi receives a request
@@ -133,12 +144,19 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
         //than the one of the last satisfied ride on this district, it must respond "...yeah, you can take
         //care of that request...", but we know that some other taxi will have replied to him with the no message saying
         //"sorry bro, I already handled that"
+        debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): my current election is " +
+                idleThread.currentRequestBeingProcessed + ", and the one of the other is " + input.getIdRideRequest());
         if(input.getIdRideRequest() < idleThread.currentRequestBeingProcessed){
             responseObserver.onNext(yes);   //someone else will answer "no"
             responseObserver.onCompleted();
+            debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +
+                    "I' haven't satisfied this request but I know someone else did, so... yes, but another one" +
+                    " will tell you no");
         }else if(input.getIdRideRequest() > idleThread.currentRequestBeingProcessed){
             //let's save those requests and answer them later
             idleThread.addPendingRideElectionRequest(input, responseObserver);
+            debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +
+                    "You are ahead of me, I'll reply to you later");
 
         }else{
             //the request is from a taxi from my same district AND the id of the taxi request is the same as the one
@@ -148,15 +166,21 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
                 //if no, let's just tell him that another taxi between all of us will take care of this ride
                 responseObserver.onNext(no);   //someone else will answer "no"
                 responseObserver.onCompleted();
+                debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +
+                        "This taxi is not in my list of participants to this election, so, no.");
             }else{
                 //if yes, let's see: who's closer? Who has the most battery? Who has the highest ID?
                 boolean res = idleThread.compareTaxis(input);
                 if(res){
                     responseObserver.onNext(yes);
                     responseObserver.onCompleted();
+                    debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +
+                            "The other one wins, I step back.");
                 }else{
                     responseObserver.onNext(no);
                     responseObserver.onCompleted();
+                    debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +
+                            "I win!");
                 }
             }
         }

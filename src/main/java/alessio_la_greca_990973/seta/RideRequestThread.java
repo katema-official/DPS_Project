@@ -77,6 +77,16 @@ public class RideRequestThread implements Runnable{
                     arrivingY = SmartCity.generateRandomYInsideSmartCity();
                 }while(startingX == arrivingX && startingY == arrivingY);
 
+                //TODO: remove
+                startingX = rand.nextInt(5);
+                startingY = rand.nextInt(5);
+                arrivingX = rand.nextInt(5);
+                arrivingY = rand.nextInt(5);
+                if(startingX == arrivingX && startingY == arrivingY){
+                    arrivingX = (arrivingX + 1) % 5;
+                    arrivingY = (arrivingY + 1) % 5;
+                }
+
                 //let's find out the topic on which we have to publish the request
                 District d = SmartCity.getDistrict(startingX, startingY);
                 String last = d.toString().toLowerCase();
@@ -98,15 +108,14 @@ public class RideRequestThread implements Runnable{
 
                 // Set the QoS on the Message
                 message.setQos(qos);
-                System.out.println("Publishing request number " + ID + "...");
+                debug("Publishing request number " + ID + " on district " + last);
                 client.publish(topic, message);
-                System.out.println("Request published!");
 
 
                 Thread.sleep(requestDelay - millis);
 
 
-                debug("Cycle ended after publishing request number " + ID + ". Restarting...");
+                //debug("Cycle ended after publishing request number " + ID + ". Restarting...");
 
 
             } catch (InterruptedException e) {
