@@ -32,9 +32,7 @@ public class TaxiMain {
                         line = reader.readLine();
                     } catch (IOException e) {e.printStackTrace();}
                     if(line.equals("recharge")){
-                        synchronized (taxi.alertBatteryRecharge) {
-                            taxi.alertBatteryRecharge.notify();
-                        }
+                        taxi.setExplicitRechargeRequest(true);
                     }
                 }
 

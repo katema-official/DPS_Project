@@ -56,77 +56,85 @@ public class RideRequestThread implements Runnable{
     public void run() {
 
         while(true) {
-            //this thread must generate, each five seconds, in a random moment, a ride request. To do so,
-            //we generate a random number between 0 and 4999, sleep for that time, generate the request,
-            //sleep for 5000 - the previously generated time and then repeat.
-            Random rand = new Random();
-            int millis = rand.nextInt(requestDelay);
+            //this thread must generate, each five seconds, in two random moments, two ride request.
             try {
-                Thread.sleep(millis);
+                Random rand = new Random();
 
-                int ID = Seta.generateNewRideRequestID();
+                int millis1 = rand.nextInt(requestDelay);
+                Thread.sleep(millis1);
+                generateRequest();
 
-                int startingX;
-                int startingY;
-                int arrivingX;
-                int arrivingY;
-                do {
-                    startingX = SmartCity.generateRandomXInsideSmartCity();
-                    startingY = SmartCity.generateRandomYInsideSmartCity();
-                    arrivingX = SmartCity.generateRandomXInsideSmartCity();
-                    arrivingY = SmartCity.generateRandomYInsideSmartCity();
-                }while(startingX == arrivingX && startingY == arrivingY);
+                int millis2  = rand.nextInt(requestDelay - millis1);
+                Thread.sleep(millis2);
+                generateRequest();
 
-                //TODO: remove
-                startingX = rand.nextInt(5);
-                startingY = rand.nextInt(5);
-                arrivingX = rand.nextInt(5);
-                arrivingY = rand.nextInt(5);
-                if(startingX == arrivingX && startingY == arrivingY){
-                    arrivingX = (arrivingX + 1) % 5;
-                    arrivingY = (arrivingY + 1) % 5;
-                }
-
-                //let's find out the topic on which we have to publish the request
-                District d = SmartCity.getDistrict(startingX, startingY);
-                String last = d.toString().toLowerCase();
-                String topic = "seta/smartcity/rides/" + last;
-
-                //let's now generate the request...
-                RideRequestMessage rrm = RideRequestMessage.newBuilder()
-                        .setId(ID)
-                        .setStartingX(startingX)
-                        .setStartingY(startingY)
-                        .setArrivingX(arrivingX)
-                        .setArrivingY(arrivingY).build();
-
-                //...save it in the pending requests...
-                Seta.addPendingRequest(d, rrm);
-
-                //...and publish it on the MQTT broker
-                MqttMessage message = new MqttMessage(rrm.toByteArray());
-
-                // Set the QoS on the Message
-                message.setQos(qos);
-                debug("Publishing request number " + ID + " on district " + last);
-                client.publish(topic, message);
-
-
-                Thread.sleep(requestDelay - millis);
-
-
-                //debug("Cycle ended after publishing request number " + ID + ". Restarting...");
-
+                Thread.sleep(requestDelay - millis1 - millis2);
 
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (MqttPersistenceException e) {
-                throw new RuntimeException(e);
-            } catch (MqttException e) {
                 throw new RuntimeException(e);
             }
         }
     }
+
+
+    private void generateRequest(){
+        int ID = Seta.generateNewRideRequestID();
+
+        Random rand = new Random();
+
+        int startingX;
+        int startingY;
+        int arrivingX;
+        int arrivingY;
+        do {
+            startingX = SmartCity.generateRandomXInsideSmartCity();
+            startingY = SmartCity.generateRandomYInsideSmartCity();
+            arrivingX = SmartCity.generateRandomXInsideSmartCity();
+            arrivingY = SmartCity.generateRandomYInsideSmartCity();
+        }while(startingX == arrivingX && startingY == arrivingY);
+
+        //TODO: remove
+        startingX = rand.nextInt(5);
+        startingY = rand.nextInt(5);
+        arrivingX = rand.nextInt(5);
+        arrivingY = rand.nextInt(5);
+        if(startingX == arrivingX && startingY == arrivingY){
+            arrivingX = (arrivingX + 1) % 5;
+            arrivingY = (arrivingY + 1) % 5;
+        }
+
+        //let's find out the topic on which we have to publish the request
+        District d = SmartCity.getDistrict(startingX, startingY);
+        String last = d.toString().toLowerCase();
+        String topic = "seta/smartcity/rides/" + last;
+
+        //let's now generate the request...
+        RideRequestMessage rrm = RideRequestMessage.newBuilder()
+                .setId(ID)
+                .setStartingX(startingX)
+                .setStartingY(startingY)
+                .setArrivingX(arrivingX)
+                .setArrivingY(arrivingY).build();
+
+        //...save it in the pending requests...
+        Seta.addPendingRequest(d, rrm);
+
+        //...and publish it on the MQTT broker
+        MqttMessage message = new MqttMessage(rrm.toByteArray());
+
+        // Set the QoS on the Message
+        message.setQos(qos);
+        debug("Publishing request number " + ID + " on district " + last);
+        try{
+            client.publish(topic, message);
+        } catch (MqttPersistenceException e) {
+            throw new RuntimeException(e);
+        } catch (MqttException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
 
     private void debug(String message){
         if(Commons.DEBUG_GLOBAL && RideRequestThread.DEBUG_LOCAL){

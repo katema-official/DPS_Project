@@ -4,12 +4,15 @@ import alessio_la_greca_990973.simulator.Measurement;
 import alessio_la_greca_990973.simulator.PM10Simulator;
 import alessio_la_greca_990973.smart_city.taxi.Taxi;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PollutionSimulatorThread implements Runnable{
 
     private ArrayList<Measurement> meanMeasurements;
+    private Object meanMeasurements_lock;
+
     private int ID;
 
     private Object alert;
@@ -22,6 +25,7 @@ public class PollutionSimulatorThread implements Runnable{
         meanMeasurements = new ArrayList<>();
         ID = 0;
         thisTaxi = t;
+        meanMeasurements_lock = new Object();
     }
 
     @Override
@@ -41,20 +45,26 @@ public class PollutionSimulatorThread implements Runnable{
                         value += m.getValue();
                     }
                     value = value / 8;
-                    Measurement m = new Measurement("pm10_mean-"+(ID++), "PM10", value, System.currentTimeMillis());
+                    synchronized (meanMeasurements_lock){
+                        Measurement m = new Measurement("pm10_mean-"+(ID++), "PM10", value, System.currentTimeMillis());
+                    }
                     //System.out.println("generated m = " + m.getId() + ", " + m.getValue() + ", " + m.getTimestamp());
                 } catch (InterruptedException e) {throw new RuntimeException(e);}
             }
-
-
         }
-
-
-
-
-
     }
 
-    public void start() {
+
+    public ArrayList<Double> getMeanMeasurements(){
+        ArrayList<Double> ret = new ArrayList<>();
+        synchronized (meanMeasurements_lock){
+            for(Measurement m : meanMeasurements){
+                ret.add(m.getValue());
+            }
+            //after getting the measurements (that will be sent to the server), we can delete them.
+            meanMeasurements.clear();
+        }
+        return ret;
     }
+
 }

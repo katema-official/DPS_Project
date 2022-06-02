@@ -9,6 +9,7 @@ import alessio_la_greca_990973.smart_city.taxi.rpcservices.MiscTaxiServiceImpl;
 import alessio_la_greca_990973.smart_city.taxi.threads.BatteryListener;
 import alessio_la_greca_990973.smart_city.taxi.threads.BatteryManager;
 import alessio_la_greca_990973.smart_city.taxi.threads.IdleThread;
+import alessio_la_greca_990973.smart_city.taxi.threads.StatisticsThread;
 import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
@@ -78,6 +79,9 @@ public class Taxi {
 
 
 
+    public boolean explicitRechargeRequest;
+    private Object explicitRechargeRequest_lock;
+
     public Taxi(int ID, String host) {
         this.ID = ID;
         this.host = host;
@@ -101,6 +105,9 @@ public class Taxi {
         satisfiedRides.put(District.DISTRICT3, -1);
         satisfiedRides.put(District.DISTRICT4, -1);
         setState(Commons.INITIALIZING);
+
+        explicitRechargeRequest = false;
+        explicitRechargeRequest_lock = new Object();
     }
 
     public void init() throws IOException {
@@ -153,11 +160,12 @@ public class Taxi {
                 }
             }
 
-
+            //thread that handles the sneding of the statistics to the server
+            StatisticsThread st = new StatisticsThread(this, pollutionsThread);
 
             //(I add this) now that I have the infos about the other taxis, I can open my gRPC service to other taxis,
             //so that future taxis will be able to contact me and ask me my position (they will also tell me their initial position)
-            IdleThread it = new IdleThread(this);
+            IdleThread it = new IdleThread(this, st);
 
             taxiService = ServerBuilder.forPort(getPort()).addService(new MiscTaxiServiceImpl(this, batteryListener, it)).build();
             taxiService.start();
@@ -304,6 +312,21 @@ public class Taxi {
     public void setState(int state) {
         synchronized (stateLock) {
             this.state = state;
+        }
+    }
+
+
+
+    //USED FOR MANUAL RECHARGE
+    public void setExplicitRechargeRequest(boolean req){
+        synchronized (explicitRechargeRequest_lock) {
+            explicitRechargeRequest = req;
+        }
+    }
+
+    public boolean getExplicitRechargeRequest(){
+        synchronized (explicitRechargeRequest_lock){
+            return explicitRechargeRequest;
         }
     }
 }

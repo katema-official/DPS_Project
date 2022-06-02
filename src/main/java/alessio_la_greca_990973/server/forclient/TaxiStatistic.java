@@ -12,7 +12,7 @@ import java.util.List;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class TaxiStatistic {
 
-    protected int kilometers;
+    protected double kilometers;
     protected int rides;
     @XmlElement(name = "pollutions")
     protected double pollutionAverage;
@@ -20,14 +20,14 @@ public class TaxiStatistic {
 
     public TaxiStatistic(){}
 
-    public TaxiStatistic(int kilometers, int rides, double pollutionAverage, int batteryLevel){
+    public TaxiStatistic(double kilometers, int rides, double pollutionAverage, int batteryLevel){
         this.kilometers = kilometers;
         this.rides = rides;
         this.pollutionAverage = pollutionAverage;
         this.batteryLevel = batteryLevel;
     }
 
-    public int getKilometers() {
+    public double getKilometers() {
         return kilometers;
     }
 

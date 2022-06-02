@@ -7,7 +7,7 @@ public class TaxiStatisticWithTimestamp extends TaxiStatistic{
     private double timestamp;
     private List<Double> pollutionAverages;
 
-    public TaxiStatisticWithTimestamp(int kilometers, int rides, List<Double> pollutionAverages, int batteryLevel, double timestamp){
+    public TaxiStatisticWithTimestamp(double kilometers, int rides, List<Double> pollutionAverages, int batteryLevel, double timestamp){
         super(kilometers, rides, 0D, batteryLevel);
         this.timestamp = timestamp;
         this.pollutionAverages = pollutionAverages;

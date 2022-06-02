@@ -46,9 +46,13 @@ public class IdleThread implements Runnable{
     private HashMap<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> pendingRideElectionRequests;
     private Object pendingRideElectionRequests_lock;
 
+
+
+    private StatisticsThread statisticsThread;
+
     private boolean DEBUG_LOCAL = true;
 
-    public IdleThread(Taxi t){
+    public IdleThread(Taxi t, StatisticsThread statisticsThread){
         thisTaxi = t;
         incomingRequests_lock = new Object();
         incomingRequests = new ArrayList<>();
@@ -62,6 +66,8 @@ public class IdleThread implements Runnable{
         rrmCurrentRequestBeingProcessed = null;
         election_lock = new Object();
         pendingRideElectionRequests_lock = new Object();
+
+        this.statisticsThread = statisticsThread;
 
         try {
             client = new MqttClient(broker, clientId);
@@ -137,7 +143,7 @@ public class IdleThread implements Runnable{
 
         while(true) { //TODO: !taxiHasToTerminate
             //first of all, let's check if we have to recharge the battery
-            if(thisTaxi.getBatteryLevel() <= 30){
+            if(thisTaxi.getBatteryLevel() <= 30 || thisTaxi.getExplicitRechargeRequest() == true){
                 //if so, now we have to recharge
                 synchronized (thisTaxi.alertBatteryRecharge) {
                     thisTaxi.alertBatteryRecharge.notify();
@@ -147,6 +153,7 @@ public class IdleThread implements Runnable{
                 synchronized (thisTaxi.rechargeComplete_lock){
                     try {
                         thisTaxi.rechargeComplete_lock.wait();
+                        thisTaxi.setExplicitRechargeRequest(false);
                     } catch (InterruptedException e) {throw new RuntimeException(e);}
                 }
 
@@ -163,7 +170,8 @@ public class IdleThread implements Runnable{
                 //I save that this is the request I'm taking care of right now.
                 synchronized (thisTaxi.stateLock) {
                     debug("(Taxi " + thisTaxi.getId() + "): starting to take care of request number " + currentRideRequest.getId() +
-                            "(" + currentRideRequest.getStartingX()  +"," + currentRideRequest.getStartingY() + ")");
+                            " (" + currentRideRequest.getStartingX()  +"," + currentRideRequest.getStartingY() + ") -> ("
+                            + currentRideRequest.getArrivingX()  +"," + currentRideRequest.getArrivingY() + ")");
                     currentRequestBeingProcessed = currentRideRequest.getId();
                     rrmCurrentRequestBeingProcessed = currentRideRequest;
                     thisTaxi.setState(Commons.ELECTING);
@@ -207,6 +215,8 @@ public class IdleThread implements Runnable{
                 }
 
                 if(ret){
+                    double toLower1 = 0D;
+                    double toLower2 = 0D;
                     debug("(I'm taxi " + thisTaxi.getId() + ") I'll take care of request with id " + currentRequestBeingProcessed);
                     synchronized (thisTaxi.stateLock) {
                         thisTaxi.setState(Commons.RIDING);
@@ -276,18 +286,20 @@ public class IdleThread implements Runnable{
                         NotifyFromTaxi notify = NotifyFromTaxi.newBuilder().setDistrict(d).build();
 
                         //4) lower the battery value
-                        int toLower = (int) SmartCity.distance(thisTaxi.getCurrX(), thisTaxi.getCurrY(),
+                        toLower1 = (int) SmartCity.distance(thisTaxi.getCurrX(), thisTaxi.getCurrY(),
                                 rrmCurrentRequestBeingProcessed.getStartingX(), rrmCurrentRequestBeingProcessed.getStartingY());
-                        thisTaxi.subtractPercentageFromBatteryLevel(toLower);
-                        toLower = (int) SmartCity.distance(rrmCurrentRequestBeingProcessed.getStartingX(),
+                        thisTaxi.subtractPercentageFromBatteryLevel((int) toLower1);
+                        toLower2 = (int) SmartCity.distance(rrmCurrentRequestBeingProcessed.getStartingX(),
                                 rrmCurrentRequestBeingProcessed.getStartingY(),
                                 rrmCurrentRequestBeingProcessed.getArrivingX(),
                                 rrmCurrentRequestBeingProcessed.getArrivingY());
-                        thisTaxi.subtractPercentageFromBatteryLevel(toLower);
+                        thisTaxi.subtractPercentageFromBatteryLevel((int) toLower2);
                     }
 
 
-                    //5) TODO: add the statistics to the proper data structure
+                    //5) add the statistics to the proper data structure
+                    statisticsThread.addKilometers(toLower1 + toLower2);
+                    statisticsThread.addRide();
 
                     //6) now I actually sleep
                     try {
