@@ -26,7 +26,7 @@ public class AdministratorClient {
         String serverAddress = "http://localhost:1337";
         ClientResponse clientResponse = null;
 
-        System.out.println("Welcome, administrator client! Type a command to perform a request (type help for the list of commands)");
+        System.out.println("Welcome, Administrator Client! Type a command to perform a request (type help for the list of commands)");
         String line = "";
         BufferedReader reader;
         while(true){
@@ -148,7 +148,8 @@ public class AdministratorClient {
             System.out.println("Here is the average of the last " + n + " statistics of taxi " + id + ":");
             System.out.println("Kilometers: " + stats.getKilometers());
             System.out.println("Battery level: " + stats.getBatteryLevel());
-            System.out.println("Pollution level: " + stats.getPollutionAverage());
+            double d = stats.getPollutionAverage();
+            System.out.println("Pollution level: " + d);
             System.out.println("Rides: " + stats.getRides());
         }else{
             System.out.println("The required taxi is not present. Type \"taxis\" to get the list of all the taxis in the city");

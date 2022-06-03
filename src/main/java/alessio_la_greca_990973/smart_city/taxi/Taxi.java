@@ -82,6 +82,10 @@ public class Taxi {
     public boolean explicitRechargeRequest;
     private Object explicitRechargeRequest_lock;
 
+
+
+    private StatisticsThread st;
+
     public Taxi(int ID, String host) {
         this.ID = ID;
         this.host = host;
@@ -161,7 +165,7 @@ public class Taxi {
             }
 
             //thread that handles the sneding of the statistics to the server
-            StatisticsThread st = new StatisticsThread(this, pollutionsThread);
+            st = new StatisticsThread(this, pollutionsThread);
 
             //(I add this) now that I have the infos about the other taxis, I can open my gRPC service to other taxis,
             //so that future taxis will be able to contact me and ask me my position (they will also tell me their initial position)
@@ -174,6 +178,9 @@ public class Taxi {
             //thread that handles recharge requests
             Thread t2 = new Thread(batteryManager);
             t2.start();
+
+            Thread t3 = new Thread(st);
+            t3.start();
 
             /*Finally, the taxi subscribes to the MQTT topic of its district*/
             Thread t1 = new Thread(it);

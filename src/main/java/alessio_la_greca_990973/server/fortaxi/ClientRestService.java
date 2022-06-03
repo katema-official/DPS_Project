@@ -29,6 +29,7 @@ public class ClientRestService {
     @GET
     @Produces({"application/json", "application/xml"})
     public Response getLastNStatistics(@PathParam("id") int id, @PathParam("n") int n){
+        System.out.println("requested last " + n + " stats of taxi " + id);
         TaxiStatistic ts = TaxiRegisteredOnTheServer.getInstance().getLastNStatisticOfTaxi(id, n);
         return Response.ok(ts).build();
     }

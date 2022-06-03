@@ -14,7 +14,6 @@ public class TaxiStatistic {
 
     protected double kilometers;
     protected int rides;
-    @XmlElement(name = "pollutions")
     protected double pollutionAverage;
     protected int batteryLevel;
 
@@ -31,7 +30,7 @@ public class TaxiStatistic {
         return kilometers;
     }
 
-    public void setKilometers(int kilometers) {
+    public void setKilometers(double kilometers) {
         this.kilometers = kilometers;
     }
 

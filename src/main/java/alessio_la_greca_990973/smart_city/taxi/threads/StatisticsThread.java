@@ -13,6 +13,8 @@ import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 
+import java.util.ArrayList;
+
 public class StatisticsThread implements Runnable{
 
     private boolean DEBUG_LOCAL = true;
@@ -52,13 +54,22 @@ public class StatisticsThread implements Runnable{
              -The timestamp in which the local statistics were computed
              -The current battery level of the Taxi*/
             sendCurrentStatisticsToServer();
+            debug("STATISTICS SENT!");
         }
     }
 
 
     public void sendCurrentStatisticsToServer(){
-        TaxiStatisticsPacket packet = new TaxiStatisticsPacket(getCurrentlyTraveledKilometers(), getSatisfiedRides(),
-                pollutionSimulator.getMeanMeasurements(), thisTaxi.getId(), System.currentTimeMillis(),
+
+        double km = getCurrentlyTraveledKilometers();
+        debug("curret kilometers I'm sending: " + km);
+        ArrayList<Double> pollutions = pollutionSimulator.getMeanMeasurements();
+        for(Double p : pollutions){
+            System.out.println("pollution = " + p);
+        }
+
+        TaxiStatisticsPacket packet = new TaxiStatisticsPacket(km, getSatisfiedRides(),
+                pollutions, thisTaxi.getId(), System.currentTimeMillis(),
                 thisTaxi.getBatteryLevel());
 
         //send to the server
@@ -92,7 +103,7 @@ public class StatisticsThread implements Runnable{
 
     public void addKilometers(double km){
         synchronized (stats_lock){
-            satisfiedRides += km;
+            currentlyTraveledKilometers += km;
         }
     }
 

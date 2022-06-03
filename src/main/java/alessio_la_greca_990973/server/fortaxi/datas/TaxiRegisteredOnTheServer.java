@@ -214,7 +214,7 @@ public class TaxiRegisteredOnTheServer {
 
             //faccio la media delle statistiche e poi la restituisco
             TaxiStatistic average = new TaxiStatistic();
-            int sumKilometers = 0;
+            double sumKilometers = 0D;
             int sumRides = 0;
             ArrayList<Double> pollutionsTotal = new ArrayList<>();
             int sumBattery = 0;
@@ -229,14 +229,23 @@ public class TaxiRegisteredOnTheServer {
                 sumBattery += current.getBatteryLevel();
             }
 
-            average.setKilometers(sumKilometers / n);
+            average.setKilometers(sumKilometers / (double) n);
             average.setRides(sumRides / n);
-            double totalSumPollutions = 0;
+            double totalSumPollutions = 0D;
             for(Double d : pollutionsTotal){
                 totalSumPollutions += d;
             }
             average.setPollutionAverage(totalSumPollutions / (double) pollutionsTotal.size());
             average.setBatteryLevel(sumBattery / n);
+
+            System.out.println("not divided: " + totalSumPollutions);
+            System.out.println("not divided: " + sumKilometers);
+            System.out.println("calculated: " + (totalSumPollutions / (double) pollutionsTotal.size()));
+            System.out.println("given: " + average.getPollutionAverage());
+
+            System.out.println("calculated: " + (sumKilometers / (double) n));
+            System.out.println("given: " + average.getKilometers());
+
 
             return average;
         }
