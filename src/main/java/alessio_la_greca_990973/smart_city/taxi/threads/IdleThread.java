@@ -54,7 +54,7 @@ public class IdleThread implements Runnable{
     private StatisticsThread statisticsThread;
 
     private boolean DEBUG_LOCAL = true;
-    private boolean DEBUG_LOCAL2 = true;
+    private boolean DEBUG_LOCAL2 = false;
 
     public IdleThread(Taxi t, StatisticsThread statisticsThread){
         thisTaxi = t;
@@ -133,10 +133,13 @@ public class IdleThread implements Runnable{
     @Override
     public void run() {
 
+        debug2("IDLE THREAD PARTITO");
 
         while(true) { //TODO: !taxiHasToTerminate
             //first of all, let's check if we have to recharge the battery
+            System.out.println("start of the cycle");
             if(thisTaxi.getBatteryLevel() <= 30 || thisTaxi.getExplicitRechargeRequest() == true){
+                System.out.println("I WANT TO RECHARGE");
                 //if so, now we have to recharge
                 synchronized (thisTaxi.alertBatteryRecharge) {
                     thisTaxi.alertBatteryRecharge.notify();
@@ -178,6 +181,8 @@ public class IdleThread implements Runnable{
                 //request.
                 HashMap<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> pendingElections =
                         getPendingRideElectionRequestForSpecificRequest(currentRequestBeingProcessed);
+                //(we also save the IDs of the taxi we respond to in this way. This will be helpful later)
+                ArrayList<Integer> taxisIRepliedTo = new ArrayList<>();
                 boolean stop = false;
                 for (Map.Entry<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> e : pendingElections.entrySet()){
                     //debug("(Taxi " + thisTaxi.getId() + "): now I handle the deffered request with id " +
@@ -190,23 +195,25 @@ public class IdleThread implements Runnable{
                         e.getValue().onCompleted();
                         //if the other one wins, I can consider this request as satisfied, so...
                         setIncomingRequestsToTrue(currentRequestBeingProcessed);
-                        debug("(taxi " + thisTaxi.getId() + " received deferred from taxi " + e.getKey().getTaxiId() + "): " +
+                        debug2("(taxi " + thisTaxi.getId() + " received deferred from taxi " + e.getKey().getTaxiId() + "): " +
                                 "The other one wins, I step back.");
                     }else{
                         //I win
                         e.getValue().onNext(TaxiCoordinationReply.newBuilder().setOk(false).build());
                         e.getValue().onCompleted();
-                        debug("(taxi " + thisTaxi.getId() + " received deferred from taxi " + e.getKey().getTaxiId() + "): " +
+                        debug2("(taxi " + thisTaxi.getId() + " received deferred from taxi " + e.getKey().getTaxiId() + "): " +
                                "I win!");
                     }
 
                     stop = tmp || stop;
+
+                    taxisIRepliedTo.add(e.getKey().getTaxiId());
                 }
 
                 boolean ret = false;
                 if(!stop) {
 
-                    ret = askOtherTaxisAboutARide(currentRideRequest);
+                    ret = askOtherTaxisAboutARide(currentRideRequest, taxisIRepliedTo);
                     //when ret=true, it means I've been chosen to take care of this ride request
                 }
 
@@ -409,9 +416,20 @@ public class IdleThread implements Runnable{
 
 
     public int getSizeOfIncomingRequestQueue(){
+        int unsatisfied = 0;
         synchronized (incomingRequests_lock){
-            return incomingRequests.size();
+
+            for(Map.Entry<RideRequestMessage, Boolean> entry : incomingRequests.entrySet()){
+                //the minimum i want has to be:
+                //1) the minimum RideRequestMessage among all of the onse i have in my incomingRequests
+                //2) this minimum must have false as value, beacuse it means it hasn't been satisfied yet (for what I know at least)
+                if(entry.getValue() == false){
+                    unsatisfied++;
+                }
+            }
         }
+        System.out.println("unsatisfied requests = " + unsatisfied);
+        return unsatisfied;
     }
 
     public void addIncomingRequest(RideRequestMessage rrm){
@@ -448,12 +466,12 @@ public class IdleThread implements Runnable{
                 if(entry.getValue() == false && entry.getKey().getId() < minReq){
                     minReq = entry.getKey().getId();
                     ret = entry.getKey();
-                    debug("current minimum request = " + ret.getId());
+                    debug2("current minimum request = " + ret.getId());
                 }
             }
         }
 
-        if(ret!=null) debug("The request taken from the queue is " + ret.getId());
+        if(ret!=null) debug2("The request taken from the queue is " + ret.getId());
         return ret;
     }
 
@@ -490,43 +508,47 @@ public class IdleThread implements Runnable{
 
 
 
-    private boolean askOtherTaxisAboutARide(RideRequestMessage currentRideRequest){
+    private boolean askOtherTaxisAboutARide(RideRequestMessage currentRideRequest, ArrayList<Integer> alreadyAsked){
         //debug("(Taxi " + thisTaxi.getId() + "): starting to send election messages to other taxis");
         synchronized (thisTaxi.otherTaxisLock) {
             otherTaxisInThisElection = new HashMap<>(thisTaxi.getOtherTaxis());
         }
-        //debug("the number of other taxis is " + otherTaxisInThisElection.size());
+        //I have to ask only to the taxis I didn't ask before
         synchronized(election_lock){
-            for(Map.Entry<Integer, TaxiTaxiRepresentation> entry : otherTaxisInThisElection.entrySet()){
-                //for each taxi that in the city, ask him if you can take care of request
-                String host = entry.getValue().getHostname();
-                int port = entry.getValue().getListeningPort();
-                ManagedChannel channel = ManagedChannelBuilder.forTarget(host + ":" + port).usePlaintext().build();
-                MiscTaxiServiceBlockingStub stub = MiscTaxiServiceGrpc.newBlockingStub(channel);
+            for(Map.Entry<Integer, TaxiTaxiRepresentation> entry : otherTaxisInThisElection.entrySet()) {
 
-                //let's build the request
-                TaxiCoordinationRequest request =
-                        TaxiCoordinationRequest.newBuilder().setIdRideRequest(currentRideRequest.getId())
-                                .setX(thisTaxi.getCurrX()).setY(thisTaxi.getCurrY())
-                                .setBatteryLevel(thisTaxi.getBatteryLevel())
-                                .setTaxiId(thisTaxi.getId()).build();
+                if(!alreadyAsked.contains(entry.getKey())){
+                    //for each taxi that in the city, ask him if you can take care of request
+                    String host = entry.getValue().getHostname();
+                    int port = entry.getValue().getListeningPort();
+                    ManagedChannel channel = ManagedChannelBuilder.forTarget(host + ":" + port).usePlaintext().build();
+                    MiscTaxiServiceBlockingStub stub = MiscTaxiServiceGrpc.newBlockingStub(channel);
 
-                TaxiCoordinationReply reply = stub.mayITakeCareOfThisRequest(request);
-                channel.shutdown();
+                    //let's build the request
+                    TaxiCoordinationRequest request =
+                            TaxiCoordinationRequest.newBuilder().setIdRideRequest(currentRideRequest.getId())
+                                    .setX(thisTaxi.getCurrX()).setY(thisTaxi.getCurrY())
+                                    .setBatteryLevel(thisTaxi.getBatteryLevel())
+                                    .setTaxiId(thisTaxi.getId()).build();
 
-                //if EVEN ONE of the other taxis tells me to not take care of this request,
-                //I stop asking. I know i'll have to take care of it if all of them reply
-                //to me with an actual ok message
-                if(reply.getOk() == false){
-                    //debug("(I'm taxi " + thisTaxi.getId() + ") ...but taxi " + entry.getValue().getId() + " told me" +
-                    //        " to step back :(");
-                    //If another taxi told me "no", I can consider that request has fulfilled, because
-                    //I know that there is another taxi that will handle that.
-                    setIncomingRequestsToTrue(currentRequestBeingProcessed);
-                    return false;
+                    TaxiCoordinationReply reply = stub.mayITakeCareOfThisRequest(request);
+                    channel.shutdown();
+
+                    //if EVEN ONE of the other taxis tells me to not take care of this request,
+                    //I stop asking. I know i'll have to take care of it if all of them reply
+                    //to me with an actual ok message
+                    if (reply.getOk() == false) {
+                        //debug("(I'm taxi " + thisTaxi.getId() + ") ...but taxi " + entry.getValue().getId() + " told me" +
+                        //        " to step back :(");
+                        //If another taxi told me "no", I can consider that request has fulfilled, because
+                        //I know that there is another taxi that will handle that.
+                        setIncomingRequestsToTrue(currentRideRequest.getId());
+                        return false;
+                    }
+                    //debug("(I'm taxi " + thisTaxi.getId() + ") ...and taxi " + entry.getValue().getId() + " told me" +
+                    //        " ok! :)");
                 }
-                //debug("(I'm taxi " + thisTaxi.getId() + ") ...and taxi " + entry.getValue().getId() + " told me" +
-                //        " ok! :)");
+
             }
         }
         //if instead all of the other taxis replied to me with an actual ok message (happens also if there were not

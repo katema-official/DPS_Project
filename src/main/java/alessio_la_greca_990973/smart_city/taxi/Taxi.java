@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-public class Taxi {
+public class Taxi implements Runnable{
 
     private static boolean DEBUG_LOCAL = true;
 
@@ -104,7 +104,7 @@ public class Taxi {
         explicitRechargeRequest_lock = new Object();
     }
 
-    public boolean init() throws IOException {
+    public void run() {
         /*Once it is launched, the Taxi process must register itself to the
         system through the Administrator Server*/
 
@@ -160,9 +160,13 @@ public class Taxi {
             //(I add this) now that I have the infos about the other taxis, I can open my gRPC service to other taxis,
             //so that future taxis will be able to contact me and ask me my position (they will also tell me their initial position)
             IdleThread it = new IdleThread(this, st);
-
+            System.out.println("t1");
             taxiService = ServerBuilder.forPort(getPort()).addService(new MiscTaxiServiceImpl(this, batteryListener, it)).build();
-            taxiService.start();
+            try {
+                taxiService.start();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             //taxiService.awaitTermination();
 
             //thread that handles recharge requests
@@ -175,6 +179,7 @@ public class Taxi {
             /*Finally, the taxi subscribes to the MQTT topic of its district*/
             Thread t1 = new Thread(it);
             t1.start();
+            System.out.println("t2");
 
 
 
@@ -193,6 +198,10 @@ public class Taxi {
              */
             //----------------------------end debug-----------------------------
 
+            synchronized (TaxiMain.taxiMain_lock){
+                TaxiMain.ok = 1;
+                TaxiMain.taxiMain_lock.notify();
+            }
 
             try {
                 taxiService.awaitTermination();
@@ -201,9 +210,11 @@ public class Taxi {
 
         }else{
             System.out.println("That taxi was already present. Try another id please.");
-            return false;
+            synchronized (TaxiMain.taxiMain_lock){
+                TaxiMain.ok = 0;
+                TaxiMain.taxiMain_lock.notify();
+            }
         }
-        return true;
     }
 
     public int getPort(){

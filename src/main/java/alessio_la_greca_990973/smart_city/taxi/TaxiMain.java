@@ -3,8 +3,12 @@ package alessio_la_greca_990973.smart_city.taxi;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Scanner;
 
 public class TaxiMain {
+
+    public static Object taxiMain_lock;
+    public static Integer ok;
 
     public static void main(String args[]) {
         /*A Taxi is initialized by specifying
@@ -13,9 +17,13 @@ public class TaxiMain {
         - Administrator Server ’s address*/
         System.out.println("Welcome! Please specify an id between 0 and 16383 for this taxi");
         int id = -1;
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        //BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        Scanner scan = new Scanner(System.in);
+        taxiMain_lock = new Object();
         try {
-            String line = reader.readLine();
+            //String line = reader.readLine();
+            String line;
+            line = scan.nextLine();
             id = Integer.parseInt(line);
 
             if(id < 0 || id > 16383){
@@ -23,26 +31,39 @@ public class TaxiMain {
             }else {
 
                 Taxi taxi = new Taxi(id, "localhost");
-                boolean ok = taxi.init();
+                ok = -1;
+                Thread thread_taxi = new Thread(taxi);
+                thread_taxi.start();
 
-                if(ok) {
+                synchronized (taxiMain_lock){
+                    if(ok == -1) {
+                        try {
+                            taxiMain_lock.wait();
+                        } catch (InterruptedException e) {throw new RuntimeException(e);}
+                    }
+                }
+
+                System.out.println("ok = " + ok);
+                if(ok == 1) {
                     //from now on, it's just the command line for giving orders to the taxi
                     while (true) {
-                        try {
-                            line = reader.readLine();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        //try {
+                            //line = reader.readLine();
+                            System.out.println("entratino");
+                            line = scan.nextLine();
+                            System.out.println("Line = " + line);
+                        //} catch (IOException e) {
+                          //  e.printStackTrace();
+                        //}
                         if (line.equals("recharge")) {
+                            System.out.println("Recharge request accepted");
                             taxi.setExplicitRechargeRequest(true);
                         }
                     }
                 }
 
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }catch(NumberFormatException e){
+        } catch(NumberFormatException e){
             System.out.println("Please insert an integer between 0 and 16383");
         }
     }

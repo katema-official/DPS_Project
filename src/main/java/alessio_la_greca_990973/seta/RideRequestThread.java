@@ -14,6 +14,7 @@ import java.util.Random;
 public class RideRequestThread implements Runnable{
 
     private boolean DEBUG_LOCAL = true;
+    private boolean DEBUG_LOCAL2 = true;
 
     private int requestDelay = 5000;    //so it can be changed if needed
     private MqttClient client;
@@ -177,6 +178,7 @@ public class RideRequestThread implements Runnable{
                         case DISTRICT4: true_d = alessio_la_greca_990973.smart_city.District.DISTRICT4; break;
                         case DISTRICT_ERROR: true_d = alessio_la_greca_990973.smart_city.District.DISTRICT_ERROR; break;
                     }
+                    debug2("ALLORA IL TAXI E' ARRIVATO NEL DISTRETTO " + true_d);
                     String last = true_d.toString().toLowerCase();
                     String resend_topic = "seta/smartcity/rides/" + last;
 
@@ -241,6 +243,12 @@ public class RideRequestThread implements Runnable{
 
     private void debug(String message){
         if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL){
+            System.out.println("debug SETA: " + message);
+        }
+    }
+
+    private void debug2(String message){
+        if(DEBUG_LOCAL2){
             System.out.println("debug SETA: " + message);
         }
     }
