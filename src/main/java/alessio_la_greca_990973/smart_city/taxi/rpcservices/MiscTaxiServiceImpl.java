@@ -37,7 +37,7 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
         //I tell him where I am.
         OldTaxiPresentation my_presentation = OldTaxiPresentation.newBuilder().setCurrX(taxi.getCurrX()).setCurrY(taxi.getCurrY()).build();
 
-        System.out.println("my_presentation = " + my_presentation);
+        System.out.println("my_presentation = " + my_presentation.getCurrX() + "," + my_presentation.getCurrY());
 
         responseObserver.onNext(my_presentation);
         responseObserver.onCompleted();

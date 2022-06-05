@@ -51,9 +51,12 @@ public class IdleThread implements Runnable{
     private StatisticsThread statisticsThread;
 
     private boolean DEBUG_LOCAL = true;
+    private boolean DEBUG_LOCAL2 = true;
 
     public IdleThread(Taxi t, StatisticsThread statisticsThread){
         thisTaxi = t;
+        otherTaxisInThisElection = new HashMap<>(thisTaxi.getOtherTaxis());
+
         incomingRequests_lock = new Object();
         incomingRequests = new ArrayList<>();
         //let's start the MQTT client
@@ -215,8 +218,10 @@ public class IdleThread implements Runnable{
                 }
 
                 if(ret){
+                    debug2("T" + thisTaxi.getId()+ " - I handle request number " + currentRequestBeingProcessed);
                     double toLower1 = 0D;
                     double toLower2 = 0D;
+                    replyYesToAllPendingRideElectionRequests();
                     debug("(I'm taxi " + thisTaxi.getId() + ") I'll take care of request with id " + currentRequestBeingProcessed);
                     synchronized (thisTaxi.stateLock) {
                         thisTaxi.setState(Commons.RIDING);
@@ -363,6 +368,10 @@ public class IdleThread implements Runnable{
         if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL) System.out.println("debug: " + msg);
     }
 
+    private void debug2(String msg){
+        if(DEBUG_LOCAL2) System.out.println(" " + msg);
+    }
+
 
 
     private void subscribeToADistrictTopic(District d){
@@ -375,9 +384,9 @@ public class IdleThread implements Runnable{
             //if the client was already subscribed to a district, it must now unsubscribe from them
             client.unsubscribe("seta/smartcity/rides/+");   //TODO: lancia errore se non è registrato? devo mettere un array?
 
-            System.out.println(thisTaxi.getId() + " subscribing to district " + d.toString().toLowerCase());
+            debug(thisTaxi.getId() + " subscribing to district " + d.toString().toLowerCase());
             client.subscribe(topic, qos);
-            System.out.println(thisTaxi.getId() + " subscribed to district " + d.toString().toLowerCase());
+            debug(thisTaxi.getId() + " subscribed to district " + d.toString().toLowerCase());
 
         } catch (MqttException me) {
             System.out.println("reason " + me.getReasonCode());
@@ -535,6 +544,25 @@ public class IdleThread implements Runnable{
         }
         return ret;
 
+    }
+
+
+    //when a taxi starts riding, it can reply "yes" to all the pending requests it queued.
+    public void replyYesToAllPendingRideElectionRequests(){
+        synchronized (pendingRideElectionRequests_lock) {
+            for (Map.Entry<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> e :
+                    pendingRideElectionRequests.entrySet()) {
+
+                e.getValue().onNext(TaxiCoordinationReply.newBuilder().setOk(true).build());
+                e.getValue().onCompleted();
+                debug2("(taxi " + thisTaxi.getId() + " is now riding, so responds \"ok\" to taxi " +
+                        e.getKey().getTaxiId() +
+                        " about the request number " + e.getKey().getIdRideRequest());
+            }
+
+            //now we delete all the pending requests from the hashmap of pending requests
+            pendingRideElectionRequests.clear();
+        }
     }
 
     /*public TaxiCoordinationRequest getMinimumPendingRideElectionRequestsInput(){

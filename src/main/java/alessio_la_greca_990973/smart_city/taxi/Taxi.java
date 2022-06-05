@@ -164,7 +164,7 @@ public class Taxi {
                 }
             }
 
-            //thread that handles the sneding of the statistics to the server
+            //thread that handles the sending of the statistics to the server
             st = new StatisticsThread(this, pollutionsThread);
 
             //(I add this) now that I have the infos about the other taxis, I can open my gRPC service to other taxis,
@@ -189,6 +189,7 @@ public class Taxi {
 
 
             //-----------------------------debug-------------------------------
+            /*
             debug("Your taxi is now in the city. Here are some infos:\n" +
                     currX + "\n" +
                     currY + "\n");
@@ -199,6 +200,7 @@ public class Taxi {
                             "(" + entry.getValue().getCurrX() + "," + entry.getValue().getCurrY() + ")");
                 }
             }
+             */
             //----------------------------end debug-----------------------------
 
 

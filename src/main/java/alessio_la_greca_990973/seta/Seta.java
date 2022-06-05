@@ -28,11 +28,12 @@ public class Seta {
         pendingRequestsHashMap.put(District.DISTRICT3, new ArrayList<>());
         pendingRequestsHashMap.put(District.DISTRICT4, new ArrayList<>());
 
-        SetaSubscriberThread sst = new SetaSubscriberThread();
+        RideRequestThread r1 = new RideRequestThread();
+        SetaSubscriberThread sst = new SetaSubscriberThread(r1);
         Thread t0 = new Thread(sst);
         t0.start();
 
-        RideRequestThread r1 = new RideRequestThread();
+
         Thread t1 = new Thread(r1);
         t1.start();
 
@@ -74,7 +75,7 @@ public class Seta {
                 }
             }
             if(toRemove != null){
-                requests.remove(id);
+                requests.remove(toRemove);
                 pendingRequestsHashMap.put(district, requests);
                 debug("Seta - removed pending request " + id + " from district " + district);
             }

@@ -12,7 +12,7 @@ import java.util.Random;
 
 public class RideRequestThread implements Runnable{
 
-    private static boolean DEBUG_LOCAL = true;
+    private boolean DEBUG_LOCAL = true;
 
     private int requestDelay = 5000;    //so it can be changed if needed
     private MqttClient client;
@@ -33,6 +33,7 @@ public class RideRequestThread implements Runnable{
             client = new MqttClient(broker, clientId);
             MqttConnectOptions connOpts = new MqttConnectOptions();
             connOpts.setCleanSession(true);
+            connOpts.setMaxInflight(1000);
             // Connect the client
             System.out.println(clientId + " RideRequestThread connecting to broker " + broker);
             client.connect(connOpts);
@@ -125,20 +126,21 @@ public class RideRequestThread implements Runnable{
         // Set the QoS on the Message
         message.setQos(qos);
         debug("Publishing request number " + ID + " on district " + last);
-        try{
-            client.publish(topic, message);
-        } catch (MqttPersistenceException e) {
-            throw new RuntimeException(e);
-        } catch (MqttException e) {
-            throw new RuntimeException(e);
-        }
+        send(topic, message);
+
     }
 
 
+    public void send(String topic, MqttMessage message){
+        try {
+            client.publish(topic, message);
+        } catch (MqttException e) {throw new RuntimeException(e);}
+    }
+
 
     private void debug(String message){
-        if(Commons.DEBUG_GLOBAL && RideRequestThread.DEBUG_LOCAL){
-            System.out.println("message");
+        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL){
+            System.out.println("debug SETA: " + message);
         }
     }
 }

@@ -62,11 +62,7 @@ public class StatisticsThread implements Runnable{
     public void sendCurrentStatisticsToServer(){
 
         double km = getCurrentlyTraveledKilometers();
-        debug("curret kilometers I'm sending: " + km);
         ArrayList<Double> pollutions = pollutionSimulator.getMeanMeasurements();
-        for(Double p : pollutions){
-            System.out.println("pollution = " + p);
-        }
 
         TaxiStatisticsPacket packet = new TaxiStatisticsPacket(km, getSatisfiedRides(),
                 pollutions, thisTaxi.getId(), System.currentTimeMillis(),
@@ -79,7 +75,7 @@ public class StatisticsThread implements Runnable{
 
         //add taxi
         clientResponse = postStatistics(client, serverAddress + "/taxi/append", packet);
-        System.out.println(clientResponse.toString());
+        debug(clientResponse.toString());
         if(clientResponse.getStatus() == 200) {
 
         }else{
