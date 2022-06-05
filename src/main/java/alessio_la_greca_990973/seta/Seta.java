@@ -29,9 +29,9 @@ public class Seta {
         pendingRequestsHashMap.put(District.DISTRICT4, new ArrayList<>());
 
         RideRequestThread r1 = new RideRequestThread();
-        SetaSubscriberThread sst = new SetaSubscriberThread(r1);
-        Thread t0 = new Thread(sst);
-        t0.start();
+        //SetaSubscriberThread sst = new SetaSubscriberThread(r1);
+        //Thread t0 = new Thread(sst);
+        //t0.start();
 
 
         Thread t1 = new Thread(r1);

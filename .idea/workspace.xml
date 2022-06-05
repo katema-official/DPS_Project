@@ -19,11 +19,10 @@
       <change beforePath="$PROJECT_DIR$/build/tmp/compileJava/source-classes-mapping.txt" beforeDir="false" afterPath="$PROJECT_DIR$/build/tmp/compileJava/source-classes-mapping.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/seta/RideRequestThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/seta/RideRequestThread.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/seta/Seta.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/seta/Seta.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/seta/SetaSubscriberThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/seta/SetaSubscriberThread.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/Taxi.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/Taxi.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/TaxiMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/TaxiMain.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/rpcservices/MiscTaxiServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/rpcservices/MiscTaxiServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/IdleThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/IdleThread.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/StatisticsThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/StatisticsThread.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -205,7 +204,7 @@
       <workItem from="1654153506210" duration="16712000" />
       <workItem from="1654238354738" duration="3858000" />
       <workItem from="1654370563060" duration="11489000" />
-      <workItem from="1654413859943" duration="1039000" />
+      <workItem from="1654413859943" duration="5781000" />
     </task>
     <servers />
   </component>

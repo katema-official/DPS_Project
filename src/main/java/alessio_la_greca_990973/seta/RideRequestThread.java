@@ -5,6 +5,7 @@ import alessio_la_greca_990973.smart_city.District;
 import alessio_la_greca_990973.smart_city.SmartCity;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.eclipse.paho.client.mqttv3.*;
+import ride.request.RideRequestMessageOuterClass;
 import ride.request.RideRequestMessageOuterClass.RideRequestMessage;
 
 import java.sql.Timestamp;
@@ -18,7 +19,10 @@ public class RideRequestThread implements Runnable{
     private MqttClient client;
     private int qos;
 
+    private Object requests_lock;
+
     public RideRequestThread(){
+        requests_lock = new Object();
         //the request thread must register as publishers on the MQTT broker
         client = null;
         String broker = "tcp://localhost:1883";
@@ -51,6 +55,8 @@ public class RideRequestThread implements Runnable{
             System.out.println("excep " + me);
             me.printStackTrace();
         }
+
+        subscribe();
     }
 
     @Override
@@ -131,12 +137,94 @@ public class RideRequestThread implements Runnable{
     }
 
 
+
+
+    private void subscribe(){
+        // Callback
+        client.setCallback(new MqttCallback() {
+
+            public void messageArrived(String topic, MqttMessage message) throws InvalidProtocolBufferException {
+
+                if(topic.equals(Commons.topicMessagesAcks)){
+                    //acks, that means, this particular ride has been accomplished
+                    RideRequestMessageOuterClass.AckFromTaxi ack = RideRequestMessageOuterClass.AckFromTaxi.parseFrom(message.getPayload());
+                    debug("acked request " + ack.getIdRequest() + " of district " + ack.getDistrict());
+                    alessio_la_greca_990973.smart_city.District d = alessio_la_greca_990973.smart_city.District.DISTRICT_ERROR;
+                    switch(ack.getDistrict()){
+                        case DISTRICT1: d = alessio_la_greca_990973.smart_city.District.DISTRICT1; break;
+                        case DISTRICT2: d = alessio_la_greca_990973.smart_city.District.DISTRICT2; break;
+                        case DISTRICT3: d = alessio_la_greca_990973.smart_city.District.DISTRICT3; break;
+                        case DISTRICT4: d = alessio_la_greca_990973.smart_city.District.DISTRICT4; break;
+                        case DISTRICT_ERROR: d = alessio_la_greca_990973.smart_city.District.DISTRICT_ERROR; break;
+                    }
+                    Seta.removePendingRequest(ack.getIdRequest(), d);
+                }else if(topic.equals(Commons.topicMessageArrivedInDistrict)){
+                    //taxi arrived in a district
+                    RideRequestMessageOuterClass.NotifyFromTaxi notify = RideRequestMessageOuterClass.NotifyFromTaxi.parseFrom(message.getPayload());
+                    alessio_la_greca_990973.smart_city.District true_d = alessio_la_greca_990973.smart_city.District.DISTRICT_ERROR;
+                    switch(notify.getDistrict()){
+                        case DISTRICT1: true_d = alessio_la_greca_990973.smart_city.District.DISTRICT1; break;
+                        case DISTRICT2: true_d = alessio_la_greca_990973.smart_city.District.DISTRICT2; break;
+                        case DISTRICT3: true_d = alessio_la_greca_990973.smart_city.District.DISTRICT3; break;
+                        case DISTRICT4: true_d = alessio_la_greca_990973.smart_city.District.DISTRICT4; break;
+                        case DISTRICT_ERROR: true_d = alessio_la_greca_990973.smart_city.District.DISTRICT_ERROR; break;
+                    }
+                    String last = true_d.toString().toLowerCase();
+                    String resend_topic = "seta/smartcity/rides/" + last;
+
+                    resend(resend_topic, true_d);
+                }
+
+            }
+
+            public void connectionLost(Throwable cause) {
+                System.out.println("Seta connection lost! cause:" + cause.getMessage() + ",\n " + cause.getCause() + ", \n" +
+                        cause.getStackTrace() + ", \n" + cause.getLocalizedMessage() + " -  Thread PID: " + Thread.currentThread().getId());
+            }
+
+            public void deliveryComplete(IMqttDeliveryToken token) {
+                // Not used here
+            }
+
+        });
+        int qos = 2;
+        System.out.println("seta subscribing to ack and notify topics...");
+        try {
+            client.subscribe(Commons.topicMessagesAcks, qos);
+            client.subscribe(Commons.topicMessageArrivedInDistrict, qos);
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
+        System.out.println("subscribed!");
+    }
+
+
+
+
+
     public void send(String topic, MqttMessage message){
         try {
             client.publish(topic, message);
         } catch (MqttException e) {throw new RuntimeException(e);}
     }
 
+
+    public void resend(String resend_topic, alessio_la_greca_990973.smart_city.District true_d){
+        synchronized (Seta.pending_requests_lock){
+            //now that we have the topic, let's send again the pending requests for that district.
+            debug("sending once again the pending requests for district " + true_d + ", since a taxi notified its presence there. " +
+                    "The number of pending requests is " + Seta.getPendingRequests(true_d).size());
+            for(RideRequestMessage rrm : Seta.getPendingRequests(true_d)) {
+                MqttMessage resend_message = new MqttMessage(rrm.toByteArray());
+                // Set the QoS on the Message
+                resend_message.setQos(qos);
+
+                send(resend_topic, resend_message);
+
+                debug("in particular, sending request ID " + rrm.getId());
+            }
+        }
+    }
 
     private void debug(String message){
         if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL){

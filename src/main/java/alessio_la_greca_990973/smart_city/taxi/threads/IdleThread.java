@@ -95,7 +95,7 @@ public class IdleThread implements Runnable{
                     RideRequestMessage rrm = RideRequestMessage.parseFrom(message.getPayload());
                     addIncomingRequest(rrm);
                     //String receivedMessage = rrm.getId() + " - (" + rrm.getStartingX() + "," + rrm.getStartingY() + ") - (" + +rrm.getArrivingX() + "," + rrm.getArrivingY() + ")";
-                    debug("Taxi " + thisTaxi.getId() + " received request number " + rrm.getId());//a request for position (" + rrm.getStartingX() + "," + rrm.getStartingY() + ")");
+                    //debug("Taxi " + thisTaxi.getId() + " received request number " + rrm.getId());//a request for position (" + rrm.getStartingX() + "," + rrm.getStartingY() + ")");
 
                 }
 
@@ -122,18 +122,7 @@ public class IdleThread implements Runnable{
         District d = SmartCity.getDistrict(thisTaxi.getCurrX(), thisTaxi.getCurrY());
         subscribeToADistrictTopic(d);
 
-        //now, the Taxi can notify Seta that he is now present in this initial district.
-        RideRequestMessageOuterClass.District true_d = RideRequestMessageOuterClass.District.DISTRICT_ERROR;
-        switch(d){
-            case DISTRICT1: true_d = RideRequestMessageOuterClass.District.DISTRICT1; break;
-            case DISTRICT2: true_d = RideRequestMessageOuterClass.District.DISTRICT2; break;
-            case DISTRICT3: true_d = RideRequestMessageOuterClass.District.DISTRICT3; break;
-            case DISTRICT4: true_d = RideRequestMessageOuterClass.District.DISTRICT4; break;
-            case DISTRICT_ERROR: true_d = RideRequestMessageOuterClass.District.DISTRICT_ERROR; break;
-        }
-        try {
-            client.publish(Commons.topicMessageArrivedInDistrict, new MqttMessage(NotifyFromTaxi.newBuilder().setDistrict(true_d).build().toByteArray()));
-        } catch (MqttException e) {throw new RuntimeException(e);}
+
 
         debug("finished the constructor");
     }
@@ -141,8 +130,6 @@ public class IdleThread implements Runnable{
     @Override
     public void run() {
 
-
-        debug("hi there");
 
         while(true) { //TODO: !taxiHasToTerminate
             //first of all, let's check if we have to recharge the battery
@@ -164,7 +151,7 @@ public class IdleThread implements Runnable{
                 //if(devoUscire), basta
             }
 
-            debug("(Taxi " + thisTaxi.getId() + "): my position is (" + thisTaxi.getCurrX() + ","+ thisTaxi.getCurrY() + ")");
+            //debug("(Taxi " + thisTaxi.getId() + "): my position is (" + thisTaxi.getCurrX() + ","+ thisTaxi.getCurrY() + ")");
 
             //if there are pending ride requests, take the first available one and ask the others about it.
             //clearly, the one chosen must be of my current district
@@ -172,9 +159,9 @@ public class IdleThread implements Runnable{
             if((currentRideRequest = getIncomingRequest()) != null){ //if there is at least one pending request...
                 //I save that this is the request I'm taking care of right now.
                 synchronized (thisTaxi.stateLock) {
-                    debug("(Taxi " + thisTaxi.getId() + "): starting to take care of request number " + currentRideRequest.getId() +
-                            " (" + currentRideRequest.getStartingX()  +"," + currentRideRequest.getStartingY() + ") -> ("
-                            + currentRideRequest.getArrivingX()  +"," + currentRideRequest.getArrivingY() + ")");
+                    //debug("(Taxi " + thisTaxi.getId() + "): starting to take care of request number " + currentRideRequest.getId() +
+                    //        " (" + currentRideRequest.getStartingX()  +"," + currentRideRequest.getStartingY() + ") -> ("
+                    //        + currentRideRequest.getArrivingX()  +"," + currentRideRequest.getArrivingY() + ")");
                     currentRequestBeingProcessed = currentRideRequest.getId();
                     rrmCurrentRequestBeingProcessed = currentRideRequest;
                     thisTaxi.setState(Commons.ELECTING);
@@ -189,22 +176,22 @@ public class IdleThread implements Runnable{
                         getPendingRideElectionRequestForSpecificRequest(currentRequestBeingProcessed);
                 boolean stop = false;
                 for (Map.Entry<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> e : pendingElections.entrySet()){
-                    debug("(Taxi " + thisTaxi.getId() + "): now I handle the deffered request with id " +
-                            rrmCurrentRequestBeingProcessed.getId() + " for the other taxi " + e.getKey().getTaxiId());
+                    //debug("(Taxi " + thisTaxi.getId() + "): now I handle the deffered request with id " +
+                    //        rrmCurrentRequestBeingProcessed.getId() + " for the other taxi " + e.getKey().getTaxiId());
                     boolean tmp = compareTaxis(e.getKey());
 
                     if(tmp){
                         //the other one wins
                         e.getValue().onNext(TaxiCoordinationReply.newBuilder().setOk(true).build());
                         e.getValue().onCompleted();
-                        debug("(taxi " + thisTaxi.getId() + " received from taxi " + e.getKey().getTaxiId() + "): " +
-                                "The other one wins, I step back.");
+                        //debug("(taxi " + thisTaxi.getId() + " received from taxi " + e.getKey().getTaxiId() + "): " +
+                        //        "The other one wins, I step back.");
                     }else{
                         //I win
                         e.getValue().onNext(TaxiCoordinationReply.newBuilder().setOk(false).build());
                         e.getValue().onCompleted();
-                        debug("(taxi " + thisTaxi.getId() + " received from taxi " + e.getKey().getTaxiId() + "): " +
-                                "I win!");
+                        //debug("(taxi " + thisTaxi.getId() + " received from taxi " + e.getKey().getTaxiId() + "): " +
+                        //        "I win!");
                     }
 
                     stop = tmp || stop;
@@ -222,7 +209,6 @@ public class IdleThread implements Runnable{
                     double toLower1 = 0D;
                     double toLower2 = 0D;
                     replyYesToAllPendingRideElectionRequests();
-                    debug("(I'm taxi " + thisTaxi.getId() + ") I'll take care of request with id " + currentRequestBeingProcessed);
                     synchronized (thisTaxi.stateLock) {
                         thisTaxi.setState(Commons.RIDING);
                         thisTaxi.satisfiedRides.put(
@@ -259,36 +245,15 @@ public class IdleThread implements Runnable{
                             e.printStackTrace();
                         }
 
-                        //2) change my district from the current one to the one toward which I'm heading
-                        District newDistrict = SmartCity.getDistrict(
-                                currentRideRequest.getArrivingX(), currentRideRequest.getArrivingY());
-                        subscribeToADistrictTopic(newDistrict);
-
-                        //2.1) update my coordinates to the one of the final location of the ride
+                        //2) update my coordinates to the one of the final location of the ride
                         thisTaxi.setCurrX(rrmCurrentRequestBeingProcessed.getArrivingX());
                         thisTaxi.setCurrY(rrmCurrentRequestBeingProcessed.getArrivingY());
 
-                        //3) ask to SETA to send me the pending requests of the district in which
-                        //I'm about to go (I prepare myself for after the ride)
-                        d = RideRequestMessageOuterClass.District.DISTRICT_ERROR;
-                        switch (newDistrict) {
-                            case DISTRICT1:
-                                d = RideRequestMessageOuterClass.District.DISTRICT1;
-                                break;
-                            case DISTRICT2:
-                                d = RideRequestMessageOuterClass.District.DISTRICT2;
-                                break;
-                            case DISTRICT3:
-                                d = RideRequestMessageOuterClass.District.DISTRICT3;
-                                break;
-                            case DISTRICT4:
-                                d = RideRequestMessageOuterClass.District.DISTRICT4;
-                                break;
-                            default:
-                                d = RideRequestMessageOuterClass.District.DISTRICT_ERROR;
-                                break;
-                        }
-                        NotifyFromTaxi notify = NotifyFromTaxi.newBuilder().setDistrict(d).build();
+                        //3) change my district from the current one to the one toward which I'm heading
+                        District newDistrict = SmartCity.getDistrict(
+                                currentRideRequest.getArrivingX(), currentRideRequest.getArrivingY());
+
+                        subscribeToADistrictTopic(newDistrict);
 
                         //4) lower the battery value
                         toLower1 = (int) SmartCity.distance(thisTaxi.getCurrX(), thisTaxi.getCurrY(),
@@ -396,7 +361,20 @@ public class IdleThread implements Runnable{
             System.out.println("excep " + me);
             me.printStackTrace();
         }
-        debug("ok, subscribed!");
+        //debug("ok, subscribed!");
+
+        //now, the Taxi can notify Seta that he is now present in this district.
+        RideRequestMessageOuterClass.District true_d = RideRequestMessageOuterClass.District.DISTRICT_ERROR;
+        switch(d){
+            case DISTRICT1: true_d = RideRequestMessageOuterClass.District.DISTRICT1; break;
+            case DISTRICT2: true_d = RideRequestMessageOuterClass.District.DISTRICT2; break;
+            case DISTRICT3: true_d = RideRequestMessageOuterClass.District.DISTRICT3; break;
+            case DISTRICT4: true_d = RideRequestMessageOuterClass.District.DISTRICT4; break;
+            case DISTRICT_ERROR: true_d = RideRequestMessageOuterClass.District.DISTRICT_ERROR; break;
+        }
+        try {
+            client.publish(Commons.topicMessageArrivedInDistrict, new MqttMessage(NotifyFromTaxi.newBuilder().setDistrict(true_d).build().toByteArray()));
+        } catch (MqttException e) {throw new RuntimeException(e);}
     }
 
     private void closeMqttSubscriberConnection(){
@@ -424,13 +402,16 @@ public class IdleThread implements Runnable{
             //add the request only if we know it's not already been satisfied OR it is not already present
             if(thisTaxi.satisfiedRides.get(SmartCity.getDistrict(rrm.getStartingX(), rrm.getStartingY())) >
                     rrm.getId()){
+                debug("NO! I'm NOT adding request " + rrm.getId() + ", because the last satisfied request is " + thisTaxi.satisfiedRides.get(SmartCity.getDistrict(rrm.getStartingX(), rrm.getStartingY())));
                 return;
             }
             for(RideRequestMessage req : incomingRequests){
                 if(req.getId() == rrm.getId()){
+                    debug("NO! I'm NOT adding request " + rrm.getId() + ", for the other reason");
                     return;
                 }
             }
+            debug("Taxi " + thisTaxi.getId() + " added request number " + rrm.getId());
             incomingRequests.add(rrm);
             incomingRequests_lock.notify();
         }
@@ -455,15 +436,16 @@ public class IdleThread implements Runnable{
 
             }
         }
+        if(ret!=null) debug("The request taken from the queue is " + ret.getId());
         return ret;
     }
 
     private boolean askOtherTaxisAboutARide(RideRequestMessage currentRideRequest){
-        debug("(Taxi " + thisTaxi.getId() + "): starting to send election messages to other taxis");
+        //debug("(Taxi " + thisTaxi.getId() + "): starting to send election messages to other taxis");
         synchronized (thisTaxi.otherTaxisLock) {
             otherTaxisInThisElection = new HashMap<>(thisTaxi.getOtherTaxis());
         }
-        debug("the number of other taxis is " + otherTaxisInThisElection.size());
+        //debug("the number of other taxis is " + otherTaxisInThisElection.size());
         synchronized(election_lock){
             for(Map.Entry<Integer, TaxiTaxiRepresentation> entry : otherTaxisInThisElection.entrySet()){
                 //for each taxi that in the city, ask him if you can take care of request
@@ -486,12 +468,12 @@ public class IdleThread implements Runnable{
                 //I stop asking. I know i'll have to take care of it if all of them reply
                 //to me with an actual ok message
                 if(reply.getOk() == false){
-                    debug("(I'm taxi " + thisTaxi.getId() + ") ...but taxi " + entry.getValue().getId() + " told me" +
-                            " to step back :(");
+                    //debug("(I'm taxi " + thisTaxi.getId() + ") ...but taxi " + entry.getValue().getId() + " told me" +
+                    //        " to step back :(");
                     return false;
                 }
-                debug("(I'm taxi " + thisTaxi.getId() + ") ...and taxi " + entry.getValue().getId() + " told me" +
-                        " ok! :)");
+                //debug("(I'm taxi " + thisTaxi.getId() + ") ...and taxi " + entry.getValue().getId() + " told me" +
+                //        " ok! :)");
             }
         }
         //if instead all of the other taxis replied to me with an actual ok message (happens also if there were not
@@ -607,8 +589,8 @@ public class IdleThread implements Runnable{
     public boolean compareTaxis(TaxiCoordinationRequest other){
         Taxi me = thisTaxi;
 
-        debug("me = (" + me.getCurrX() + "," + me.getCurrY() + ")" + " - " + me.getBatteryLevel() + "% - id = " + me.getId() +
-                "ot = (" + other.getX() + "," + other.getY() + ")" + " - " + other.getBatteryLevel() + "% - id = " + other.getTaxiId());
+        //debug("me = (" + me.getCurrX() + "," + me.getCurrY() + ")" + " - " + me.getBatteryLevel() + "% - id = " + me.getId() +
+        //        "ot = (" + other.getX() + "," + other.getY() + ")" + " - " + other.getBatteryLevel() + "% - id = " + other.getTaxiId());
 
         //*the Taxi must have the minimum distance from the starting point of
         //the ride*
@@ -617,7 +599,7 @@ public class IdleThread implements Runnable{
         double otherDistance = SmartCity.distance(other.getX(), other.getY(),
                 rrmCurrentRequestBeingProcessed.getStartingX(), rrmCurrentRequestBeingProcessed.getStartingY());
         if(myDistance - otherDistance < 0){
-            debug("I WIN");
+            //debug("I WIN");
             return false;
         }else if(myDistance - otherDistance > 0.01){
             return true;

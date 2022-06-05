@@ -114,7 +114,7 @@ public class Taxi {
         explicitRechargeRequest_lock = new Object();
     }
 
-    public void init() throws IOException {
+    public boolean init() throws IOException {
         /*Once it is launched, the Taxi process must register itself to the
         system through the Administrator Server*/
 
@@ -211,7 +211,9 @@ public class Taxi {
 
         }else{
             System.out.println("That taxi was already present. Try another id please.");
+            return false;
         }
+        return true;
     }
 
     public int getPort(){

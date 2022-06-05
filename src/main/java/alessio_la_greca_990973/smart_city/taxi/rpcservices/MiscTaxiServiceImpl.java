@@ -37,7 +37,7 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
         //I tell him where I am.
         OldTaxiPresentation my_presentation = OldTaxiPresentation.newBuilder().setCurrX(taxi.getCurrX()).setCurrY(taxi.getCurrY()).build();
 
-        System.out.println("my_presentation = " + my_presentation.getCurrX() + "," + my_presentation.getCurrY());
+        debug("my_presentation = " + my_presentation.getCurrX() + "," + my_presentation.getCurrY());
 
         responseObserver.onNext(my_presentation);
         responseObserver.onCompleted();
@@ -52,12 +52,12 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
         //if taxi asking me to recharge is not in my same district,
         //I reply ok immediately to him.
         RechargeStationReply ok = RechargeStationReply.newBuilder().setOk(true).build();
-        debug("his district = " + input.getDistrict().toString());
-        debug("my district = " + SmartCity.getDistrict(taxi.getCurrX(), taxi.getCurrY()));
+        //debug("his district = " + input.getDistrict().toString());
+        //debug("my district = " + SmartCity.getDistrict(taxi.getCurrX(), taxi.getCurrY()));
         if(!input.getDistrict().toString().equals(
                 SmartCity.getDistrict(taxi.getCurrX(), taxi.getCurrY()).toString())){
-            debug("Taxi " + taxi.getId() + " is of different district in respect" +
-                    " with taxi " + input.getId() +", so ok, recharge, my friend!");
+            //debug("Taxi " + taxi.getId() + " is of different district in respect" +
+            //        " with taxi " + input.getId() +", so ok, recharge, my friend!");
             responseObserver.onNext(ok);
             responseObserver.onCompleted();
         }else{
@@ -69,27 +69,27 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
                 //if I'm not interested in recharging, I can just send an ok message to the request
                 responseObserver.onNext(ok);
                 responseObserver.onCompleted();
-                debug("Taxi " + batteryListener.getThisTaxi().getId() + " is not interested" +
-                        " in recharging. So OK to taxi " + input.getId());
+                //debug("Taxi " + batteryListener.getThisTaxi().getId() + " is not interested" +
+                //        " in recharging. So OK to taxi " + input.getId());
             }else if(currentState == Commons.WANT_TO_RECHARGE){
                 //If instead I want to access the resource, check:
                 //this guy that is contacting me, asked to access the resource before me?
                 if(input.getTimestamp() < taxi.getBatteryManager().getTimestampOfRequest()){
                     responseObserver.onNext(ok);
                     responseObserver.onCompleted();
-                    debug("Taxi " + batteryListener.getThisTaxi().getId() + " is interested" +
-                            " in recharging, but taxi " + input.getId() +" arrived before. So, OK!");
+                    //debug("Taxi " + batteryListener.getThisTaxi().getId() + " is interested" +
+                    //        " in recharging, but taxi " + input.getId() +" arrived before. So, OK!");
                 }else{
                     //Otherwise, I asked to access before him, so I must put him in the queue.
                     batteryListener.getQueue().appendPendingRequest(responseObserver);
-                    debug("Taxi " + batteryListener.getThisTaxi().getId() + " is interested" +
-                            " in recharging, and arrived before taxi " + input.getId() +". So, WAIT!");
+                    //debug("Taxi " + batteryListener.getThisTaxi().getId() + " is interested" +
+                    //        " in recharging, and arrived before taxi " + input.getId() +". So, WAIT!");
                 }
             }else if(currentState == Commons.RECHARGING){
                 //if I'm using the resource, I can't reply immediately. Others will have to wait
                 batteryListener.getQueue().appendPendingRequest(responseObserver);
-                debug("Taxi " + batteryListener.getThisTaxi().getId() + " is using the recharge" +
-                        " station. So wait, taxi " + input.getId() + "!");
+                //debug("Taxi " + batteryListener.getThisTaxi().getId() + " is using the recharge" +
+                //        " station. So wait, taxi " + input.getId() + "!");
             }
         }
     }
@@ -106,8 +106,8 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
         if(SmartCity.getDistrict(taxi.getCurrX(), taxi.getCurrY()) != SmartCity.getDistrict(input.getX(), input.getY())){
             responseObserver.onNext(yes);
             responseObserver.onCompleted();
-            debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +
-                    "it's from another district, so yes");
+            //debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +
+            //        "it's from another district, so yes");
             return;
         }
 
@@ -117,8 +117,8 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
         if(taxi.satisfiedRides.get(SmartCity.getDistrict(taxi.getCurrX(), taxi.getCurrY())) >= input.getIdRideRequest()){
             responseObserver.onNext(no);
             responseObserver.onCompleted();
-            debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +
-                    "I know this request has already been satisfied, so no");
+            //debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +
+            //        "I know this request has already been satisfied, so no");
             return;
         }
 
@@ -126,8 +126,8 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
         if(taxi.getState() == Commons.RIDING){
             responseObserver.onNext(yes);
             responseObserver.onCompleted();
-            debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +
-                    "I'm riding, so yes");
+            //debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +
+            //        "I'm riding, so yes");
             return;
         }
 

@@ -23,16 +23,19 @@ public class TaxiMain {
             }else {
 
                 Taxi taxi = new Taxi(id, "localhost");
-                taxi.init();
+                boolean ok = taxi.init();
 
-
-                //from now on, it's just the command line for giving orders to the taxi
-                while(true){
-                    try {
-                        line = reader.readLine();
-                    } catch (IOException e) {e.printStackTrace();}
-                    if(line.equals("recharge")){
-                        taxi.setExplicitRechargeRequest(true);
+                if(ok) {
+                    //from now on, it's just the command line for giving orders to the taxi
+                    while (true) {
+                        try {
+                            line = reader.readLine();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        if (line.equals("recharge")) {
+                            taxi.setExplicitRechargeRequest(true);
+                        }
                     }
                 }
 
