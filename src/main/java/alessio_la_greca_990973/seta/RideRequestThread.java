@@ -26,7 +26,7 @@ public class RideRequestThread implements Runnable{
         //the request thread must register as publishers on the MQTT broker
         client = null;
         String broker = "tcp://localhost:1883";
-        String clientId = MqttClient.generateClientId();
+        String clientId = MqttAsyncClient.generateClientId();
         String topic1 = "seta/smartcity/rides/district1";
         String topic2 = "seta/smartcity/rides/district2";
         String topic3 = "seta/smartcity/rides/district3";
@@ -67,15 +67,21 @@ public class RideRequestThread implements Runnable{
             try {
                 Random rand = new Random();
 
-                int millis1 = rand.nextInt(requestDelay);
+                int millis1 = rand.nextInt(requestDelay/2);
+                debug("first: sleeping for " + millis1);
                 Thread.sleep(millis1);
                 generateRequest();
 
-                int millis2  = rand.nextInt(requestDelay - millis1);
-                Thread.sleep(millis2);
-                generateRequest();
 
-                Thread.sleep(requestDelay - millis1 - millis2);
+                int millis2  = rand.nextInt(requestDelay/2 - millis1);
+                debug("second: sleeping for " + millis2);
+
+                //Thread.sleep(millis2);
+                //generateRequest();
+
+                //debug("third: sleeping for " + (requestDelay - millis1 - millis2));
+                //Thread.sleep((requestDelay + 1) - millis1 - millis2);
+
 
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -100,6 +106,8 @@ public class RideRequestThread implements Runnable{
             arrivingY = SmartCity.generateRandomYInsideSmartCity();
         }while(startingX == arrivingX && startingY == arrivingY);
 
+
+        debug("1");
         //TODO: remove
         startingX = rand.nextInt(5);
         startingY = rand.nextInt(5);
@@ -109,7 +117,7 @@ public class RideRequestThread implements Runnable{
             arrivingX = (arrivingX + 1) % 5;
             arrivingY = (arrivingY + 1) % 5;
         }
-
+        debug("2");
         //let's find out the topic on which we have to publish the request
         District d = SmartCity.getDistrict(startingX, startingY);
         String last = d.toString().toLowerCase();
@@ -125,12 +133,12 @@ public class RideRequestThread implements Runnable{
 
         //...save it in the pending requests...
         Seta.addPendingRequest(d, rrm);
-
+        debug("3");
         //...and publish it on the MQTT broker
         MqttMessage message = new MqttMessage(rrm.toByteArray());
 
         // Set the QoS on the Message
-        message.setQos(qos);
+        message.setQos(0);  //TODO: from 2 to 0
         debug("Publishing request number " + ID + " on district " + last);
         send(topic, message);
 
@@ -183,7 +191,11 @@ public class RideRequestThread implements Runnable{
             }
 
             public void deliveryComplete(IMqttDeliveryToken token) {
-                // Not used here
+                try {
+                    debug("delivered msg " + token.toString() + ", " + token.getMessage() + token.getResponse() + ", " + token.getTopics());
+                } catch (MqttException e) {
+                    throw new RuntimeException(e);
+                }
             }
 
         });
@@ -204,6 +216,7 @@ public class RideRequestThread implements Runnable{
 
     public void send(String topic, MqttMessage message){
         try {
+            debug("4");
             client.publish(topic, message);
         } catch (MqttException e) {throw new RuntimeException(e);}
     }
@@ -221,7 +234,7 @@ public class RideRequestThread implements Runnable{
 
                 send(resend_topic, resend_message);
 
-                debug("in particular, sending request ID " + rrm.getId());
+                //debug("in particular, sending request ID " + rrm.getId());
             }
         }
     }

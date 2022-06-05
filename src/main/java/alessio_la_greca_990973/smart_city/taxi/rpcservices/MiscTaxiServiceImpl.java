@@ -111,10 +111,9 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
             return;
         }
 
-        //if the request that arrived to me right now is from a taxi of my same district and has an ID
-        //lower or equal than the highest request I satisfied in this district, I can reply to him immediately
-        //saying "no, don't bother about it, we other taxis already took care about it
-        if(taxi.satisfiedRides.get(SmartCity.getDistrict(taxi.getCurrX(), taxi.getCurrY())) >= input.getIdRideRequest()){
+        //if the request that arrived to me right now is from a taxi of my same district and I know
+        //it has already been satisfied, I can respond no to him
+        if(idleThread.getIncomingRequestValue(input.getIdRideRequest()) == true){
             responseObserver.onNext(no);
             responseObserver.onCompleted();
             //debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +

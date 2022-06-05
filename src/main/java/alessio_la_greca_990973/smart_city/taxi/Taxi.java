@@ -72,11 +72,6 @@ public class Taxi {
     public Object rechargeComplete_lock;
 
 
-    //map that associates to each district the highest (and last) satisfied ride
-    //by this taxi
-    public HashMap<District, Integer> satisfiedRides;
-
-
 
 
     public boolean explicitRechargeRequest;
@@ -103,11 +98,6 @@ public class Taxi {
         batteryManager = new BatteryManager(this, batteryListener);
 
         rechargeComplete_lock = new Object();
-        satisfiedRides = new HashMap<District, Integer>();
-        satisfiedRides.put(District.DISTRICT1, -1);
-        satisfiedRides.put(District.DISTRICT2, -1);
-        satisfiedRides.put(District.DISTRICT3, -1);
-        satisfiedRides.put(District.DISTRICT4, -1);
         setState(Commons.INITIALIZING);
 
         explicitRechargeRequest = false;
