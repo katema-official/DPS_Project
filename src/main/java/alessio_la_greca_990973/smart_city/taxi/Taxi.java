@@ -127,8 +127,8 @@ public class Taxi implements Runnable{
             currY = reply.getStartingY();
 
             //TODO: remove
-            currX = 0;
-            currY = 0;
+            //currX = 0;
+            //currY = 0;
 
             List<TaxiServerRepresentation> taxis = reply.getCurrentTaxis();
 

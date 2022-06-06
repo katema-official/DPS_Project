@@ -109,17 +109,15 @@ public class RideRequestThread implements Runnable{
         }while(startingX == arrivingX && startingY == arrivingY);
 
 
-        debug("1");
         //TODO: remove
-        startingX = rand.nextInt(5);
+        /*startingX = rand.nextInt(5);
         startingY = rand.nextInt(5);
         arrivingX = rand.nextInt(5);
         arrivingY = rand.nextInt(5);
         if(startingX == arrivingX && startingY == arrivingY){
             arrivingX = (arrivingX + 1) % 5;
             arrivingY = (arrivingY + 1) % 5;
-        }
-        debug("2");
+        }*/
         //let's find out the topic on which we have to publish the request
         District d = SmartCity.getDistrict(startingX, startingY);
         String last = d.toString().toLowerCase();
@@ -135,12 +133,11 @@ public class RideRequestThread implements Runnable{
 
         //...save it in the pending requests...
         Seta.addPendingRequest(d, rrm);
-        debug("3");
         //...and publish it on the MQTT broker
         MqttMessage message = new MqttMessage(rrm.toByteArray());
 
         // Set the QoS on the Message
-        message.setQos(qos);  //TODO: from 2 to 0
+        message.setQos(qos);
         debug("Publishing request number " + ID + " on district " + last);
         send(topic, message, ID);
 
