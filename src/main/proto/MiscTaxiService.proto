@@ -17,20 +17,17 @@ message OldTaxiPresentation{
 
 //-------------------------------
 
-
+enum District{
+  DISTRICT_ERROR = 0;
+  DISTRICT1 = 1;
+  DISTRICT2 = 2;
+  DISTRICT3 = 3;
+  DISTRICT4 = 4;
+}
 
 message RechargeStationRequest{
   int32 id = 1;
   double timestamp = 2;
-
-  enum District{
-    DISTRICT_ERROR = 0;
-    DISTRICT1 = 1;
-    DISTRICT2 = 2;
-    DISTRICT3 = 3;
-    DISTRICT4 = 4;
-  }
-
   District district = 3;
 }
 
@@ -53,13 +50,29 @@ message TaxiCoordinationReply{
   bool ok = 1;  //true = ok, you can have this ride, 0 = no, you can't satisfy this ride
 }
 
+//----------------------------------------------------
+
+//message for telling to other taxis that this request, in this district, has been satisfied
+message SatisfiedRequest{
+  int32 reqId = 1;
+  District district = 2;
+}
+
+message Void{}
+
 service MiscTaxiService{
   rpc welcomeImANewTaxi(NewTaxiPresentation) returns (OldTaxiPresentation);
 
   rpc mayIRecharge(RechargeStationRequest) returns (RechargeStationReply);
 
   rpc mayITakeCareOfThisRequest(TaxiCoordinationRequest) returns (TaxiCoordinationReply);
+
+  rpc ITookCareOfThisRequest(SatisfiedRequest) returns (Void);
 }
+
+
+
+
 
 
 

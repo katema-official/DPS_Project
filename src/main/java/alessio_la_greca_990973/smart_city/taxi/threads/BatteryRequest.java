@@ -8,6 +8,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import taxis.service.MiscTaxiServiceGrpc;
 import taxis.service.MiscTaxiServiceGrpc.*;
+import taxis.service.MiscTaxiServiceOuterClass;
 import taxis.service.MiscTaxiServiceOuterClass.*;
 
 public class BatteryRequest implements Runnable{
@@ -15,7 +16,7 @@ public class BatteryRequest implements Runnable{
     private BatteryManager thisBatteryManager;
     private TaxiTaxiRepresentation taxiToRequest;
     private double myTimestamp;
-    private RechargeStationRequest.District myDistrict;
+    private MiscTaxiServiceOuterClass.District myDistrict;
 
     private boolean DEBUG_LOCAL = true;
 
@@ -26,11 +27,11 @@ public class BatteryRequest implements Runnable{
         taxiToRequest = ttr;
         this.myTimestamp = myTimestamp;
         switch(d){
-            case DISTRICT1: this.myDistrict = RechargeStationRequest.District.DISTRICT1; break;
-            case DISTRICT2: this.myDistrict = RechargeStationRequest.District.DISTRICT2; break;
-            case DISTRICT3: this.myDistrict = RechargeStationRequest.District.DISTRICT3; break;
-            case DISTRICT4: this.myDistrict = RechargeStationRequest.District.DISTRICT4; break;
-            case DISTRICT_ERROR: this.myDistrict = RechargeStationRequest.District.DISTRICT_ERROR; break;
+            case DISTRICT1: this.myDistrict = MiscTaxiServiceOuterClass.District.DISTRICT1; break;
+            case DISTRICT2: this.myDistrict = MiscTaxiServiceOuterClass.District.DISTRICT2; break;
+            case DISTRICT3: this.myDistrict = MiscTaxiServiceOuterClass.District.DISTRICT3; break;
+            case DISTRICT4: this.myDistrict = MiscTaxiServiceOuterClass.District.DISTRICT4; break;
+            case DISTRICT_ERROR: this.myDistrict = MiscTaxiServiceOuterClass.District.DISTRICT_ERROR; break;
         }
     }
 

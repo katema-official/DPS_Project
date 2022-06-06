@@ -14,6 +14,7 @@ import ride.request.RideRequestMessageOuterClass;
 import ride.request.RideRequestMessageOuterClass.*;
 import taxis.service.MiscTaxiServiceGrpc.*;
 import taxis.service.MiscTaxiServiceGrpc;
+import taxis.service.MiscTaxiServiceOuterClass;
 import taxis.service.MiscTaxiServiceOuterClass.*;
 
 import java.util.*;
@@ -46,8 +47,6 @@ public class IdleThread implements Runnable{
     //list that contains the pending "election" requests, that is, requests
     //for understanding who has to take care of a specific request that this Taxi
     //still hasn't processed.
-    private HashMap<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> pendingRideElectionRequests;
-    private Object pendingRideElectionRequests_lock;
 
 
 
@@ -67,12 +66,10 @@ public class IdleThread implements Runnable{
         clientId = MqttClient.generateClientId();
         System.out.println("MY CLIENT_ID = " + clientId);
         qos = 2;
-        pendingRideElectionRequests = new HashMap<>();
 
         currentRequestBeingProcessed = -1;
         rrmCurrentRequestBeingProcessed = null;
         election_lock = new Object();
-        pendingRideElectionRequests_lock = new Object();
 
         this.statisticsThread = statisticsThread;
 
@@ -178,53 +175,22 @@ public class IdleThread implements Runnable{
                 //and ask them if I can take care of this ride.
                 System.out.println("Considering request number " + currentRideRequest.getId());
 
-                //BUT, before doing that, we have to answer to eventual pending requests for rides arrived in the
-                //past. If we reply "yes" to even one of them, it means that we won't anyway take care of this
-                //request.
-                HashMap<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> pendingElections =
-                        getPendingRideElectionRequestForSpecificRequest(currentRequestBeingProcessed);
-                //(we also save the IDs of the taxi we respond to in this way. This will be helpful later)
-                ArrayList<Integer> taxisIRepliedTo = new ArrayList<>();
-                boolean stop = false;
-                for (Map.Entry<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> e : pendingElections.entrySet()){
-                    //debug("(Taxi " + thisTaxi.getId() + "): now I handle the deffered request with id " +
-                    //        rrmCurrentRequestBeingProcessed.getId() + " for the other taxi " + e.getKey().getTaxiId());
-                    boolean tmp = compareTaxis(e.getKey());
 
-                    if(tmp){
-                        //the other one wins
-                        e.getValue().onNext(TaxiCoordinationReply.newBuilder().setOk(true).build());
-                        e.getValue().onCompleted();
-                        //if the other one wins, I can consider this request as satisfied, so...
-                        setIncomingRequestToTrue(currentRequestBeingProcessed);
-                        debug2("(taxi " + thisTaxi.getId() + " received deferred from taxi " + e.getKey().getTaxiId() + "): " +
-                                "The other one wins, I step back.");
-                    }else{
-                        //I win
-                        e.getValue().onNext(TaxiCoordinationReply.newBuilder().setOk(false).build());
-                        e.getValue().onCompleted();
-                        debug2("(taxi " + thisTaxi.getId() + " received deferred from taxi " + e.getKey().getTaxiId() + "): " +
-                               "I win!");
-                    }
-
-                    stop = tmp || stop;
-
-                    taxisIRepliedTo.add(e.getKey().getTaxiId());
-                }
 
                 boolean ret = false;
-                if(!stop) {
 
-                    ret = askOtherTaxisAboutARide(currentRideRequest, taxisIRepliedTo);
-                    //when ret=true, it means I've been chosen to take care of this ride request
-                }
+
+                ret = askOtherTaxisAboutARide(currentRideRequest);
+                //when ret=true, it means I've been chosen to take care of this ride request
+
 
                 if(ret){
                     System.out.println("T" + thisTaxi.getId()+ " - I handle request number " + currentRequestBeingProcessed);
                     double toLower1 = 0D;
                     double toLower2 = 0D;
                     setIncomingRequestToTrue(currentRequestBeingProcessed);
-                    replyYesToAllPendingRideElectionRequests();
+                    //we tell everyone that this request has been satisfied
+                    tellOtherTaxisThatIHandleThisRequest(currentRequestBeingProcessed);
                     synchronized (thisTaxi.stateLock) {
                         thisTaxi.setState(Commons.RIDING);
 
@@ -332,6 +298,43 @@ public class IdleThread implements Runnable{
         }
         */
 
+
+    }
+
+    private void tellOtherTaxisThatIHandleThisRequest(int currentRequestBeingProcessed) {
+        synchronized (thisTaxi.otherTaxisLock) {
+            otherTaxisInThisElection = new HashMap<>(thisTaxi.getOtherTaxis());
+        }
+
+        MiscTaxiServiceOuterClass.District true_d = MiscTaxiServiceOuterClass.District.DISTRICT_ERROR;
+        switch(SmartCity.getDistrict(thisTaxi.getCurrX(), thisTaxi.getCurrY())){
+            case DISTRICT1: true_d = MiscTaxiServiceOuterClass.District.DISTRICT1; break;
+            case DISTRICT2: true_d = MiscTaxiServiceOuterClass.District.DISTRICT2; break;
+            case DISTRICT3: true_d = MiscTaxiServiceOuterClass.District.DISTRICT3; break;
+            case DISTRICT4: true_d = MiscTaxiServiceOuterClass.District.DISTRICT4; break;
+            case DISTRICT_ERROR: true_d = MiscTaxiServiceOuterClass.District.DISTRICT_ERROR; break;
+
+        }
+        synchronized(election_lock){
+            for(Map.Entry<Integer, TaxiTaxiRepresentation> entry : otherTaxisInThisElection.entrySet()) {
+
+
+                //for each taxi that is in the city, tell him that this request has been handled
+                String host = entry.getValue().getHostname();
+                int port = entry.getValue().getListeningPort();
+                ManagedChannel channel = ManagedChannelBuilder.forTarget(host + ":" + port).usePlaintext().build();
+                MiscTaxiServiceBlockingStub stub = MiscTaxiServiceGrpc.newBlockingStub(channel);
+
+                //let's build the request
+                SatisfiedRequest done = SatisfiedRequest.newBuilder().setReqId(currentRequestBeingProcessed)
+                                .setDistrict(true_d).build();
+
+                MiscTaxiServiceOuterClass.Void reply = stub.iTookCareOfThisRequest(done);
+                channel.shutdown();
+
+
+            }
+        }
 
     }
 
@@ -496,10 +499,12 @@ public class IdleThread implements Runnable{
     }
 
     public void setIncomingRequestToTrue(int reqId){
-        for(Map.Entry<RideRequestMessage, Boolean> entry : incomingRequests.entrySet()){
-            if(entry.getKey().getId() == reqId){
-                entry.setValue(true);
-                debug("setting request " + reqId + " to satisfied");
+        synchronized (incomingRequests_lock) {
+            for (Map.Entry<RideRequestMessage, Boolean> entry : incomingRequests.entrySet()) {
+                if (entry.getKey().getId() == reqId) {
+                    entry.setValue(true);
+                    debug("setting request " + reqId + " to satisfied");
+                }
             }
         }
     }
@@ -507,7 +512,7 @@ public class IdleThread implements Runnable{
 
 
 
-    private boolean askOtherTaxisAboutARide(RideRequestMessage currentRideRequest, ArrayList<Integer> alreadyAsked){
+    private boolean askOtherTaxisAboutARide(RideRequestMessage currentRideRequest){
         //debug("(Taxi " + thisTaxi.getId() + "): starting to send election messages to other taxis");
         synchronized (thisTaxi.otherTaxisLock) {
             otherTaxisInThisElection = new HashMap<>(thisTaxi.getOtherTaxis());
@@ -516,37 +521,35 @@ public class IdleThread implements Runnable{
         synchronized(election_lock){
             for(Map.Entry<Integer, TaxiTaxiRepresentation> entry : otherTaxisInThisElection.entrySet()) {
 
-                if(!alreadyAsked.contains(entry.getKey())){
-                    //for each taxi that in the city, ask him if you can take care of request
-                    String host = entry.getValue().getHostname();
-                    int port = entry.getValue().getListeningPort();
-                    ManagedChannel channel = ManagedChannelBuilder.forTarget(host + ":" + port).usePlaintext().build();
-                    MiscTaxiServiceBlockingStub stub = MiscTaxiServiceGrpc.newBlockingStub(channel);
 
-                    //let's build the request
-                    TaxiCoordinationRequest request =
-                            TaxiCoordinationRequest.newBuilder().setIdRideRequest(currentRideRequest.getId())
-                                    .setX(thisTaxi.getCurrX()).setY(thisTaxi.getCurrY())
-                                    .setBatteryLevel(thisTaxi.getBatteryLevel())
-                                    .setTaxiId(thisTaxi.getId()).build();
+                //for each taxi that in the city, ask him if you can take care of request
+                String host = entry.getValue().getHostname();
+                int port = entry.getValue().getListeningPort();
+                ManagedChannel channel = ManagedChannelBuilder.forTarget(host + ":" + port).usePlaintext().build();
+                MiscTaxiServiceBlockingStub stub = MiscTaxiServiceGrpc.newBlockingStub(channel);
 
-                    TaxiCoordinationReply reply = stub.mayITakeCareOfThisRequest(request);
-                    channel.shutdown();
+                //let's build the request
+                TaxiCoordinationRequest request =
+                        TaxiCoordinationRequest.newBuilder().setIdRideRequest(currentRideRequest.getId())
+                                .setX(thisTaxi.getCurrX()).setY(thisTaxi.getCurrY())
+                                .setBatteryLevel(thisTaxi.getBatteryLevel())
+                                .setTaxiId(thisTaxi.getId()).build();
 
-                    //if EVEN ONE of the other taxis tells me to not take care of this request,
-                    //I stop asking. I know i'll have to take care of it if all of them reply
-                    //to me with an actual ok message
-                    if (reply.getOk() == false) {
-                        //debug("(I'm taxi " + thisTaxi.getId() + ") ...but taxi " + entry.getValue().getId() + " told me" +
-                        //        " to step back :(");
-                        //If another taxi told me "no", I can consider that request has fulfilled, because
-                        //I know that there is another taxi that will handle that.
-                        setIncomingRequestToTrue(currentRideRequest.getId());
-                        return false;
-                    }
-                    //debug("(I'm taxi " + thisTaxi.getId() + ") ...and taxi " + entry.getValue().getId() + " told me" +
-                    //        " ok! :)");
+                TaxiCoordinationReply reply = stub.mayITakeCareOfThisRequest(request);
+                channel.shutdown();
+
+                //if EVEN ONE of the other taxis tells me to not take care of this request,
+                //I stop asking. I know i'll have to take care of it if all of them reply
+                //to me with an actual ok message
+                if (reply.getOk() == false) {
+                    //debug("(I'm taxi " + thisTaxi.getId() + ") ...but taxi " + entry.getValue().getId() + " told me" +
+                    //        " to step back :(");
+                    setIncomingRequestToTrue(currentRideRequest.getId());
+                    return false;
                 }
+                //debug("(I'm taxi " + thisTaxi.getId() + ") ...and taxi " + entry.getValue().getId() + " told me" +
+                //        " ok! :)");
+
 
             }
         }
@@ -559,103 +562,12 @@ public class IdleThread implements Runnable{
 
 
 
-
-
-
     public boolean isThisTaxiInThisElection(int taxiId){
         if(otherTaxisInThisElection.containsKey(taxiId)){
             return true;
         }
         return false;
     }
-
-
-
-
-
-
-
-
-    public void addPendingRideElectionRequest(TaxiCoordinationRequest k, StreamObserver<TaxiCoordinationReply> v){
-        synchronized (pendingRideElectionRequests_lock) {
-            pendingRideElectionRequests.put(k, v);
-        }
-    }
-
-    public HashMap<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> getPendingRideElectionRequestForSpecificRequest(int reqId){
-        HashMap<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> ret = new HashMap<>();
-        synchronized (pendingRideElectionRequests_lock) {
-            for (Map.Entry<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> e :
-                    pendingRideElectionRequests.entrySet()) {
-                if (e.getKey().getIdRideRequest() == reqId) {
-                    ret.put(e.getKey(), e.getValue());
-                }
-            }
-
-            //now we delete these pending requests from the hashmap of pending requests
-            for (Map.Entry<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> e :
-                    ret.entrySet()) {
-                pendingRideElectionRequests.remove(e.getKey());
-            }
-        }
-        return ret;
-
-    }
-
-
-    //when a taxi starts riding, it can reply "yes" to all the pending requests it queued.
-    public void replyYesToAllPendingRideElectionRequests(){
-        synchronized (pendingRideElectionRequests_lock) {
-            for (Map.Entry<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> e :
-                    pendingRideElectionRequests.entrySet()) {
-
-                e.getValue().onNext(TaxiCoordinationReply.newBuilder().setOk(true).build());
-                e.getValue().onCompleted();
-                debug2("(taxi " + thisTaxi.getId() + " is now riding, so responds \"ok\" to taxi " +
-                        e.getKey().getTaxiId() +
-                        " about the request number " + e.getKey().getIdRideRequest());
-            }
-
-            //now we delete all the pending requests from the hashmap of pending requests
-            pendingRideElectionRequests.clear();
-        }
-    }
-
-    /*public TaxiCoordinationRequest getMinimumPendingRideElectionRequestsInput(){
-        int min = Integer.MAX_VALUE;
-        TaxiCoordinationRequest ret = null;
-        for(Map.Entry<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> e :
-                pendingRideElectionRequests.entrySet()){
-            if(e.getKey().getIdRideRequest() < min){
-                min = e.getKey().getIdRideRequest();
-                ret = e.getKey();
-            }
-        }
-        return ret;
-    }
-
-    //this also deletes the pending request from the hashmap
-    public StreamObserver<TaxiCoordinationReply> getMinimumPendingRideElectionRequestsStreamObserver(){
-        int min = Integer.MAX_VALUE;
-        StreamObserver<TaxiCoordinationReply> ret = null;
-        TaxiCoordinationRequest toRemove = null;
-        for(Map.Entry<TaxiCoordinationRequest, StreamObserver<TaxiCoordinationReply>> e :
-                pendingRideElectionRequests.entrySet()){
-            if(e.getKey().getIdRideRequest() < min){
-                min = e.getKey().getIdRideRequest();
-                ret = e.getValue();
-                toRemove = e.getKey();
-            }
-        }
-        pendingRideElectionRequests.remove(toRemove);
-        return ret;
-    }*/
-
-
-
-
-
-
 
 
     //false = I win (I will maybe take care of this request)

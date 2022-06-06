@@ -22,6 +22,7 @@ public class PendingRechargeRequestQueue {
                 responseObserver.onNext(ok);
                 responseObserver.onCompleted();
             }
+            request.clear();
         }
     }
 

@@ -2,6 +2,7 @@ package alessio_la_greca_990973.smart_city.taxi.rpcservices;
 
 
 import alessio_la_greca_990973.commons.Commons;
+import alessio_la_greca_990973.smart_city.District;
 import alessio_la_greca_990973.smart_city.SmartCity;
 import alessio_la_greca_990973.smart_city.taxi.Taxi;
 import alessio_la_greca_990973.smart_city.taxi.TaxiTaxiRepresentation;
@@ -9,6 +10,7 @@ import alessio_la_greca_990973.smart_city.taxi.threads.BatteryListener;
 import alessio_la_greca_990973.smart_city.taxi.threads.IdleThread;
 import io.grpc.stub.StreamObserver;
 import taxis.service.MiscTaxiServiceGrpc.*;
+import taxis.service.MiscTaxiServiceOuterClass;
 import taxis.service.MiscTaxiServiceOuterClass.*;
 
 public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
@@ -152,17 +154,15 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
         debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): my current election is " +
                 idleThread.currentRequestBeingProcessed + ", and the one of the other is " + input.getIdRideRequest());
         if(input.getIdRideRequest() < idleThread.currentRequestBeingProcessed){
-            responseObserver.onNext(yes);   //someone else will answer "no"
+            responseObserver.onNext(yes);
             responseObserver.onCompleted();
             debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +
                     "I' haven't satisfied this request but I know someone else did, so... yes, but another one" +
                     " will tell you no");
         }else if(input.getIdRideRequest() > idleThread.currentRequestBeingProcessed){
-            responseObserver.onNext(yes);   //someone else will answer "no"
+            responseObserver.onNext(yes);
             responseObserver.onCompleted();
             /*
-            //let's save those requests and answer them later
-            idleThread.addPendingRideElectionRequest(input, responseObserver);
             debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +
                     "You are ahead of me, I'll reply to you later");
             */
@@ -192,6 +192,29 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
                 }
             }
         }
+
+    }
+
+    @Override
+    public void iTookCareOfThisRequest(SatisfiedRequest sr, StreamObserver<MiscTaxiServiceOuterClass.Void> responseObserver){
+
+        District d = District.DISTRICT_ERROR;
+        switch(sr.getDistrict()){
+            case DISTRICT1: d = District.DISTRICT1; break;
+            case DISTRICT2: d = District.DISTRICT2; break;
+            case DISTRICT3: d = District.DISTRICT3; break;
+            case DISTRICT4: d = District.DISTRICT4; break;
+            case DISTRICT_ERROR: d = District.DISTRICT_ERROR; break;
+        }
+
+        synchronized (taxi.stateLock) {
+            if(SmartCity.getDistrict(taxi.getCurrX(), taxi.getCurrY()) == d){
+                idleThread.setIncomingRequestToTrue(sr.getReqId());
+            }
+        }
+
+        responseObserver.onNext(MiscTaxiServiceOuterClass.Void.newBuilder().build());
+        responseObserver.onCompleted();
 
     }
 
