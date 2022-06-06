@@ -60,6 +60,7 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
             //        " with taxi " + input.getId() +", so ok, recharge, my friend!");
             responseObserver.onNext(ok);
             responseObserver.onCompleted();
+            System.out.println("input = " + input.getId() + " repling ok (DIFFERENT DISTRICTS)");
         }else{
 
             //this is already synchronized in the getState() method
@@ -69,6 +70,7 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
                 //if I'm not interested in recharging, I can just send an ok message to the request
                 responseObserver.onNext(ok);
                 responseObserver.onCompleted();
+                System.out.println("input = " + input.getId() + " repling ok (I'm not interested in recharging)");
                 //debug("Taxi " + batteryListener.getThisTaxi().getId() + " is not interested" +
                 //        " in recharging. So OK to taxi " + input.getId());
             }else if(currentState == Commons.WANT_TO_RECHARGE){
@@ -77,17 +79,21 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
                 if(input.getTimestamp() < taxi.getBatteryManager().getTimestampOfRequest()){
                     responseObserver.onNext(ok);
                     responseObserver.onCompleted();
+                    System.out.println("input = " + input.getId() + " repling ok (he arrived before me)");
+
                     //debug("Taxi " + batteryListener.getThisTaxi().getId() + " is interested" +
                     //        " in recharging, but taxi " + input.getId() +" arrived before. So, OK!");
                 }else{
                     //Otherwise, I asked to access before him, so I must put him in the queue.
                     batteryListener.getQueue().appendPendingRequest(responseObserver);
+                    System.out.println("input = " + input.getId() + " making him wait (I arrived before him)");
                     //debug("Taxi " + batteryListener.getThisTaxi().getId() + " is interested" +
                     //        " in recharging, and arrived before taxi " + input.getId() +". So, WAIT!");
                 }
             }else if(currentState == Commons.RECHARGING){
                 //if I'm using the resource, I can't reply immediately. Others will have to wait
                 batteryListener.getQueue().appendPendingRequest(responseObserver);
+                System.out.println("input = " + input.getId() + " making him wait (I'm recharging)");
                 //debug("Taxi " + batteryListener.getThisTaxi().getId() + " is using the recharge" +
                 //        " station. So wait, taxi " + input.getId() + "!");
             }
@@ -121,8 +127,8 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
             return;
         }
 
-        //if I'm already involved in a ride, I can reply ok immediately
-        if(taxi.getState() == Commons.RIDING){
+        //if I'm already involved in a ride (or i'm involved in a recharge process), I can reply ok immediately
+        if(taxi.getState() == Commons.RIDING || taxi.getState() == Commons.WANT_TO_RECHARGE || taxi.getState()==Commons.RECHARGING){
             responseObserver.onNext(yes);
             responseObserver.onCompleted();
             //debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +
@@ -152,11 +158,14 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
                     "I' haven't satisfied this request but I know someone else did, so... yes, but another one" +
                     " will tell you no");
         }else if(input.getIdRideRequest() > idleThread.currentRequestBeingProcessed){
+            responseObserver.onNext(yes);   //someone else will answer "no"
+            responseObserver.onCompleted();
+            /*
             //let's save those requests and answer them later
             idleThread.addPendingRideElectionRequest(input, responseObserver);
             debug("(taxi " + taxi.getId() + " received from taxi " + input.getTaxiId() + "): " +
                     "You are ahead of me, I'll reply to you later");
-
+            */
         }else{
             //the request is from a taxi from my same district AND the id of the taxi request is the same as the one
             //I'm currently considering.

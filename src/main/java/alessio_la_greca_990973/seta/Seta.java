@@ -57,8 +57,10 @@ public class Seta {
     }
 
     public static ArrayList<RideRequestMessage> getPendingRequests(District district){
+        ArrayList<RideRequestMessage> ret = null;
         synchronized (pending_requests_lock){
-            return pendingRequestsHashMap.get(district);
+            ret = new ArrayList(pendingRequestsHashMap.get(district));
+            return ret;
         }
     }
 

@@ -27,7 +27,8 @@ public class RideRequestThread implements Runnable{
         //the request thread must register as publishers on the MQTT broker
         client = null;
         String broker = "tcp://localhost:1883";
-        String clientId = MqttAsyncClient.generateClientId();
+        String clientId = MqttClient.generateClientId();
+        System.out.println("MY CLIENT_ID = " + clientId);
         String topic1 = "seta/smartcity/rides/district1";
         String topic2 = "seta/smartcity/rides/district2";
         String topic3 = "seta/smartcity/rides/district3";
@@ -139,9 +140,9 @@ public class RideRequestThread implements Runnable{
         MqttMessage message = new MqttMessage(rrm.toByteArray());
 
         // Set the QoS on the Message
-        message.setQos(0);  //TODO: from 2 to 0
+        message.setQos(qos);  //TODO: from 2 to 0
         debug("Publishing request number " + ID + " on district " + last);
-        send(topic, message);
+        send(topic, message, ID);
 
     }
 
@@ -153,6 +154,9 @@ public class RideRequestThread implements Runnable{
         client.setCallback(new MqttCallback() {
 
             public void messageArrived(String topic, MqttMessage message) throws InvalidProtocolBufferException {
+
+                System.out.println("I received this message, bro:\n" +
+                        "Topic = " + topic + "\n");
 
                 if(topic.equals(Commons.topicMessagesAcks)){
                     //acks, that means, this particular ride has been accomplished
@@ -168,8 +172,10 @@ public class RideRequestThread implements Runnable{
                     }
                     Seta.removePendingRequest(ack.getIdRequest(), d);
                 }else if(topic.equals(Commons.topicMessageArrivedInDistrict)){
+                    debug2("Taxi arrivato in un distretto");
                     //taxi arrived in a district
                     RideRequestMessageOuterClass.NotifyFromTaxi notify = RideRequestMessageOuterClass.NotifyFromTaxi.parseFrom(message.getPayload());
+                    debug2("Più info sul distretto = " + notify.getDistrict());
                     alessio_la_greca_990973.smart_city.District true_d = alessio_la_greca_990973.smart_city.District.DISTRICT_ERROR;
                     switch(notify.getDistrict()){
                         case DISTRICT1: true_d = alessio_la_greca_990973.smart_city.District.DISTRICT1; break;
@@ -201,7 +207,6 @@ public class RideRequestThread implements Runnable{
             }
 
         });
-        int qos = 2;
         System.out.println("seta subscribing to ack and notify topics...");
         try {
             client.subscribe(Commons.topicMessagesAcks, qos);
@@ -216,29 +221,35 @@ public class RideRequestThread implements Runnable{
 
 
 
-    public void send(String topic, MqttMessage message){
-        try {
-            debug("4");
-            client.publish(topic, message);
-        } catch (MqttException e) {throw new RuntimeException(e);}
+    public void send(String topic, MqttMessage message, int IDrequest){
+        synchronized (requests_lock){
+            try {
+                System.out.println("allora, publishing, usando il metodo SEND, la richiesta " + IDrequest);
+                client.publish(topic, message);
+                System.out.println("pubblicata la " + IDrequest);
+            } catch (MqttException e) {
+                System.out.println("SETA: errore! " + e.getMessage() + ", \n" + e.getReasonCode() + ", \n" + e.getCause() +
+                        ", \n" + e.getStackTrace() + ", \n" + e.toString());
+                throw new RuntimeException(e);
+            }  //TODO: è qui
+        }
     }
 
 
     public void resend(String resend_topic, alessio_la_greca_990973.smart_city.District true_d){
-        synchronized (Seta.pending_requests_lock){
             //now that we have the topic, let's send again the pending requests for that district.
-            debug("sending once again the pending requests for district " + true_d + ", since a taxi notified its presence there. " +
-                    "The number of pending requests is " + Seta.getPendingRequests(true_d).size());
-            for(RideRequestMessage rrm : Seta.getPendingRequests(true_d)) {
-                MqttMessage resend_message = new MqttMessage(rrm.toByteArray());
-                // Set the QoS on the Message
-                resend_message.setQos(qos);
+        debug("sending once again the pending requests for district " + true_d + ", since a taxi notified its presence there. " +
+                "The number of pending requests is " + Seta.getPendingRequests(true_d).size());
+        for(RideRequestMessage rrm : Seta.getPendingRequests(true_d)) {
+            MqttMessage resend_message = new MqttMessage(rrm.toByteArray());
+            // Set the QoS on the Message
+            resend_message.setQos(qos);
 
-                send(resend_topic, resend_message);
+            send(resend_topic, resend_message, rrm.getId());
 
-                //debug("in particular, sending request ID " + rrm.getId());
-            }
+            //debug("in particular, sending request ID " + rrm.getId());
         }
+
     }
 
     private void debug(String message){

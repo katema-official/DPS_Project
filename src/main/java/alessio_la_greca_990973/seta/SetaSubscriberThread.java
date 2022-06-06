@@ -95,7 +95,7 @@ public class SetaSubscriberThread implements Runnable{
                         // Set the QoS on the Message
                         message.setQos(qos);
 
-                        rideRequestThread.send(resend_topic, resend_message);
+                        rideRequestThread.send(resend_topic, resend_message, rrm.getId());
 
                         debug("in particular, sending request ID " + rrm.getId());
                     }

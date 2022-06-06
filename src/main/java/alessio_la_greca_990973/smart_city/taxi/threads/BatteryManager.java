@@ -127,6 +127,7 @@ public class BatteryManager implements Runnable{
                     }
                 }
                 thisTaxi.getQueue().sendOkToAllPendingRequests();
+                System.out.println("RECHARGED");
 
 
             }

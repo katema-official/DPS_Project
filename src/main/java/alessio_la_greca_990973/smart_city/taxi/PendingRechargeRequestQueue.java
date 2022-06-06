@@ -4,27 +4,31 @@ import io.grpc.stub.StreamObserver;
 import taxis.service.MiscTaxiServiceOuterClass.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class PendingRechargeRequestQueue {
 
     private ArrayList<StreamObserver<RechargeStationReply>> request;
-    private static PendingRechargeRequestQueue instance;
+    private Object rechargeQueue_lock;
 
     public PendingRechargeRequestQueue(){
+        rechargeQueue_lock = new Object();
         request = new ArrayList<StreamObserver<RechargeStationReply>>();
     }
 
     public void sendOkToAllPendingRequests(){
-        for(StreamObserver<RechargeStationReply> responseObserver : request) {
-            RechargeStationReply ok = RechargeStationReply.newBuilder().setOk(true).build();
-            responseObserver.onNext(ok);
-            responseObserver.onCompleted();
+        synchronized (rechargeQueue_lock) {
+            for (StreamObserver<RechargeStationReply> responseObserver : request) {
+                RechargeStationReply ok = RechargeStationReply.newBuilder().setOk(true).build();
+                responseObserver.onNext(ok);
+                responseObserver.onCompleted();
+            }
         }
     }
 
     public void appendPendingRequest(StreamObserver<RechargeStationReply> pending){
-        request.add(pending);
+        synchronized (rechargeQueue_lock){
+            request.add(pending);
+        }
     }
 
 

@@ -65,6 +65,7 @@ public class IdleThread implements Runnable{
         //let's start the MQTT client
         broker = "tcp://localhost:1883";
         clientId = MqttClient.generateClientId();
+        System.out.println("MY CLIENT_ID = " + clientId);
         qos = 2;
         pendingRideElectionRequests = new HashMap<>();
 
@@ -123,7 +124,7 @@ public class IdleThread implements Runnable{
 
         //first thing first: the taxi subscribes to the district to which it belongs right now
         District d = SmartCity.getDistrict(thisTaxi.getCurrX(), thisTaxi.getCurrY());
-        subscribeToADistrictTopic(d, d);
+        subscribeToADistrictTopic(d, District.DISTRICT_ERROR);
 
 
 
@@ -175,6 +176,7 @@ public class IdleThread implements Runnable{
                 }
                 //let's start the election process. I have to contact all the taxis currently present in the city
                 //and ask them if I can take care of this ride.
+                System.out.println("Considering request number " + currentRideRequest.getId());
 
                 //BUT, before doing that, we have to answer to eventual pending requests for rides arrived in the
                 //past. If we reply "yes" to even one of them, it means that we won't anyway take care of this
@@ -194,7 +196,7 @@ public class IdleThread implements Runnable{
                         e.getValue().onNext(TaxiCoordinationReply.newBuilder().setOk(true).build());
                         e.getValue().onCompleted();
                         //if the other one wins, I can consider this request as satisfied, so...
-                        setIncomingRequestsToTrue(currentRequestBeingProcessed);
+                        setIncomingRequestToTrue(currentRequestBeingProcessed);
                         debug2("(taxi " + thisTaxi.getId() + " received deferred from taxi " + e.getKey().getTaxiId() + "): " +
                                 "The other one wins, I step back.");
                     }else{
@@ -218,10 +220,10 @@ public class IdleThread implements Runnable{
                 }
 
                 if(ret){
-                    debug2("T" + thisTaxi.getId()+ " - I handle request number " + currentRequestBeingProcessed);
+                    System.out.println("T" + thisTaxi.getId()+ " - I handle request number " + currentRequestBeingProcessed);
                     double toLower1 = 0D;
                     double toLower2 = 0D;
-                    setIncomingRequestsToTrue(currentRequestBeingProcessed);
+                    setIncomingRequestToTrue(currentRequestBeingProcessed);
                     replyYesToAllPendingRideElectionRequests();
                     synchronized (thisTaxi.stateLock) {
                         thisTaxi.setState(Commons.RIDING);
@@ -230,28 +232,19 @@ public class IdleThread implements Runnable{
                         //1)send an ack to SETA regarding this ride
                         RideRequestMessageOuterClass.District d = RideRequestMessageOuterClass.District.DISTRICT_ERROR;
                         switch (SmartCity.getDistrict(thisTaxi.getCurrX(), thisTaxi.getCurrY())) {
-                            case DISTRICT1:
-                                d = RideRequestMessageOuterClass.District.DISTRICT1;
-                                break;
-                            case DISTRICT2:
-                                d = RideRequestMessageOuterClass.District.DISTRICT2;
-                                break;
-                            case DISTRICT3:
-                                d = RideRequestMessageOuterClass.District.DISTRICT3;
-                                break;
-                            case DISTRICT4:
-                                d = RideRequestMessageOuterClass.District.DISTRICT4;
-                                break;
-                            default:
-                                d = RideRequestMessageOuterClass.District.DISTRICT_ERROR;
-                                break;
+                            case DISTRICT1: d = RideRequestMessageOuterClass.District.DISTRICT1; break;
+                            case DISTRICT2: d = RideRequestMessageOuterClass.District.DISTRICT2; break;
+                            case DISTRICT3: d = RideRequestMessageOuterClass.District.DISTRICT3; break;
+                            case DISTRICT4: d = RideRequestMessageOuterClass.District.DISTRICT4; break;
+                            default: d = RideRequestMessageOuterClass.District.DISTRICT_ERROR; break;
                         }
-                        AckFromTaxi ack = AckFromTaxi.newBuilder().setIdRequest(currentRideRequest.getId())
-                                .setDistrict(d).build();
+                        AckFromTaxi ack = AckFromTaxi.newBuilder().setIdRequest(currentRideRequest.getId()).setDistrict(d).build();
                         MqttMessage message = new MqttMessage(ack.toByteArray());
                         message.setQos(qos);
                         try {
+                            System.out.println("Sending ack to SETA regarding req " + ack.getIdRequest());
                             client.publish(Commons.topicMessagesAcks, message);
+                            System.out.println("Sent");
                         } catch (MqttException e) {
                             e.printStackTrace();
                         }
@@ -354,51 +347,57 @@ public class IdleThread implements Runnable{
 
 
     private void subscribeToADistrictTopic(District newD, District oldD){
+        //it makes sense to unsubscribe and re-subscribe to another district only if the two are different
 
-        String topic = "seta/smartcity/rides/" + newD.toString().toLowerCase();
-        try{
+        if(newD != oldD){
 
-            //if the client was already subscribed to a district, it must now unsubscribe from them
-            client.unsubscribe("seta/smartcity/rides/+");
+            String topic = "seta/smartcity/rides/" + newD.toString().toLowerCase();
+            try{
 
-            //-------------------------------------------------------------------------------------------
-            //NOW, LISTEN CLOSELY
-            //if I'm actually changing district, I can remove ALL of my pending requests, because
-            //they now belong to a district different from mine.
-            if(newD != oldD){
+                //if the client was already subscribed to a district, it must now unsubscribe from them
+                client.unsubscribe("seta/smartcity/rides/+");
+
+                //-------------------------------------------------------------------------------------------
+                //NOW, LISTEN CLOSELY
+                //if I'm actually changing district, I can remove ALL of my pending requests, because
+                //they now belong to a district different from mine.
+
                 debug("I'm changing district, so I'm cleaning all the requests!");
                 synchronized (incomingRequests_lock){
                     incomingRequests.clear();
                 }
+
+                //--------------------------------------------------------------------------------------------
+
+                debug(thisTaxi.getId() + " subscribing to district " + newD.toString().toLowerCase());
+                client.subscribe(topic, qos);
+                debug(thisTaxi.getId() + " subscribed to district " + newD.toString().toLowerCase());
+
+            } catch (MqttException me) {
+                System.out.println("reason " + me.getReasonCode());
+                System.out.println("msg " + me.getMessage());
+                System.out.println("loc " + me.getLocalizedMessage());
+                System.out.println("cause " + me.getCause());
+                System.out.println("excep " + me);
+                me.printStackTrace();
             }
-            //--------------------------------------------------------------------------------------------
+            //debug("ok, subscribed!");
 
-            debug(thisTaxi.getId() + " subscribing to district " + newD.toString().toLowerCase());
-            client.subscribe(topic, qos);
-            debug(thisTaxi.getId() + " subscribed to district " + newD.toString().toLowerCase());
-
-        } catch (MqttException me) {
-            System.out.println("reason " + me.getReasonCode());
-            System.out.println("msg " + me.getMessage());
-            System.out.println("loc " + me.getLocalizedMessage());
-            System.out.println("cause " + me.getCause());
-            System.out.println("excep " + me);
-            me.printStackTrace();
+            //now, the Taxi can notify Seta that he is now present in this district.
+            RideRequestMessageOuterClass.District true_d = RideRequestMessageOuterClass.District.DISTRICT_ERROR;
+            switch(newD){
+                case DISTRICT1: true_d = RideRequestMessageOuterClass.District.DISTRICT1; break;
+                case DISTRICT2: true_d = RideRequestMessageOuterClass.District.DISTRICT2; break;
+                case DISTRICT3: true_d = RideRequestMessageOuterClass.District.DISTRICT3; break;
+                case DISTRICT4: true_d = RideRequestMessageOuterClass.District.DISTRICT4; break;
+                case DISTRICT_ERROR: true_d = RideRequestMessageOuterClass.District.DISTRICT_ERROR; break;
+            }
+            try {
+                System.out.println("Telling to SETA that i entered district " + true_d);
+                client.publish(Commons.topicMessageArrivedInDistrict, new MqttMessage(NotifyFromTaxi.newBuilder().setDistrict(true_d).build().toByteArray()));
+                System.out.println("Told him");
+            } catch (MqttException e) {throw new RuntimeException(e);}
         }
-        //debug("ok, subscribed!");
-
-        //now, the Taxi can notify Seta that he is now present in this district.
-        RideRequestMessageOuterClass.District true_d = RideRequestMessageOuterClass.District.DISTRICT_ERROR;
-        switch(newD){
-            case DISTRICT1: true_d = RideRequestMessageOuterClass.District.DISTRICT1; break;
-            case DISTRICT2: true_d = RideRequestMessageOuterClass.District.DISTRICT2; break;
-            case DISTRICT3: true_d = RideRequestMessageOuterClass.District.DISTRICT3; break;
-            case DISTRICT4: true_d = RideRequestMessageOuterClass.District.DISTRICT4; break;
-            case DISTRICT_ERROR: true_d = RideRequestMessageOuterClass.District.DISTRICT_ERROR; break;
-        }
-        try {
-            client.publish(Commons.topicMessageArrivedInDistrict, new MqttMessage(NotifyFromTaxi.newBuilder().setDistrict(true_d).build().toByteArray()));
-        } catch (MqttException e) {throw new RuntimeException(e);}
     }
 
     private void closeMqttSubscriberConnection(){
@@ -447,7 +446,7 @@ public class IdleThread implements Runnable{
                     return;
                 }
             }
-            debug("Taxi " + thisTaxi.getId() + " added request number " + rrm.getId());
+            debug2("Taxi " + thisTaxi.getId() + " added request number " + rrm.getId());
             incomingRequests.put(rrm, false);   //for me, initially, the new request has not been satisfied
             incomingRequests_lock.notify();
         }
@@ -496,7 +495,7 @@ public class IdleThread implements Runnable{
         return false;
     }
 
-    public void setIncomingRequestsToTrue(int reqId){
+    public void setIncomingRequestToTrue(int reqId){
         for(Map.Entry<RideRequestMessage, Boolean> entry : incomingRequests.entrySet()){
             if(entry.getKey().getId() == reqId){
                 entry.setValue(true);
@@ -542,7 +541,7 @@ public class IdleThread implements Runnable{
                         //        " to step back :(");
                         //If another taxi told me "no", I can consider that request has fulfilled, because
                         //I know that there is another taxi that will handle that.
-                        setIncomingRequestsToTrue(currentRideRequest.getId());
+                        setIncomingRequestToTrue(currentRideRequest.getId());
                         return false;
                     }
                     //debug("(I'm taxi " + thisTaxi.getId() + ") ...and taxi " + entry.getValue().getId() + " told me" +
