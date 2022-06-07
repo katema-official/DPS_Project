@@ -78,6 +78,8 @@ public class Taxi implements Runnable{
     private Object explicitRechargeRequest_lock;
 
 
+    public Object incomingRequests_lock;
+
 
     private StatisticsThread st;
 
@@ -93,6 +95,7 @@ public class Taxi implements Runnable{
         termination = new Object();
         alertBatteryRecharge = new Object();
         stateLock = new Object();
+        incomingRequests_lock = new Object();
         queue = new PendingRechargeRequestQueue();
         batteryListener = new BatteryListener(this, queue);
         batteryManager = new BatteryManager(this, batteryListener);
@@ -138,6 +141,19 @@ public class Taxi implements Runnable{
             Thread t_pollutions = new Thread(pollutionsThread);
             t_pollutions.start();
 
+            //thread that handles the sending of the statistics to the server
+            st = new StatisticsThread(this, pollutionsThread);
+
+            //(I add this) before presenting myself to the other taxis, I must open my gRPC service to them,
+            //so that they and future taxis will be able to contact me and ask whatever they want
+            IdleThread it = new IdleThread(this, st);
+            taxiService = ServerBuilder.forPort(getPort()).addService(new MiscTaxiServiceImpl(this, batteryListener, it)).build();
+            try {
+                taxiService.start();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
             /*Then, if there are other taxis in the smart city, the taxi
             presents itself to the other taxis by sending them its position in the grid*/
             if (taxis != null) {
@@ -154,21 +170,6 @@ public class Taxi implements Runnable{
                 }
             }
 
-            //thread that handles the sending of the statistics to the server
-            st = new StatisticsThread(this, pollutionsThread);
-
-            //(I add this) now that I have the infos about the other taxis, I can open my gRPC service to other taxis,
-            //so that future taxis will be able to contact me and ask me my position (they will also tell me their initial position)
-            IdleThread it = new IdleThread(this, st);
-            System.out.println("t1");
-            taxiService = ServerBuilder.forPort(getPort()).addService(new MiscTaxiServiceImpl(this, batteryListener, it)).build();
-            try {
-                taxiService.start();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            //taxiService.awaitTermination();
-
             //thread that handles recharge requests
             Thread t2 = new Thread(batteryManager);
             t2.start();
@@ -179,7 +180,6 @@ public class Taxi implements Runnable{
             /*Finally, the taxi subscribes to the MQTT topic of its district*/
             Thread t1 = new Thread(it);
             t1.start();
-            System.out.println("t2");
 
 
 

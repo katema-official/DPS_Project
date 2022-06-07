@@ -102,8 +102,10 @@ public class BatteryManager implements Runnable{
 
                 /*its position becomes the same as the cell of the recharge station of the
                 district in which the taxi is currently positioned.*/
-                thisTaxi.setCurrX(rechargeCoordinates[0]);
-                thisTaxi.setCurrY(rechargeCoordinates[1]);
+                synchronized (thisTaxi.incomingRequests_lock) {
+                    thisTaxi.setCurrX(rechargeCoordinates[0]);
+                    thisTaxi.setCurrY(rechargeCoordinates[1]);
+                }
 
                 debug("Starting to recharge...");
 
@@ -115,8 +117,6 @@ public class BatteryManager implements Runnable{
                     e.printStackTrace();
                 }
 
-                debug("Recharge finished!");
-
                 synchronized (thisTaxi.stateLock) {
                     thisTaxi.setState(Commons.IDLE);
                     timestampOfRequest = 0;
@@ -127,7 +127,7 @@ public class BatteryManager implements Runnable{
                     }
                 }
                 thisTaxi.getQueue().sendOkToAllPendingRequests();
-                System.out.println("RECHARGED");
+                debug("RECHARGED");
 
 
             }

@@ -54,7 +54,7 @@ public class StatisticsThread implements Runnable{
              -The timestamp in which the local statistics were computed
              -The current battery level of the Taxi*/
             sendCurrentStatisticsToServer();
-            debug("STATISTICS SENT!");
+            //debug("STATISTICS SENT!");
         }
     }
 
@@ -75,7 +75,7 @@ public class StatisticsThread implements Runnable{
 
         //add taxi
         clientResponse = postStatistics(client, serverAddress + "/taxi/append", packet);
-        debug(clientResponse.toString());
+        //debug(clientResponse.toString());
         if(clientResponse.getStatus() == 200) {
 
         }else{

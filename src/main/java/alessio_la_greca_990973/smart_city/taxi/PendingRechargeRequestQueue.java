@@ -1,11 +1,13 @@
 package alessio_la_greca_990973.smart_city.taxi;
 
+import alessio_la_greca_990973.commons.Commons;
 import io.grpc.stub.StreamObserver;
 import taxis.service.MiscTaxiServiceOuterClass.*;
 
 import java.util.ArrayList;
 
 public class PendingRechargeRequestQueue {
+    private boolean DEBUG_LOCAL;
 
     private ArrayList<StreamObserver<RechargeStationReply>> request;
     private Object rechargeQueue_lock;
@@ -21,6 +23,7 @@ public class PendingRechargeRequestQueue {
                 RechargeStationReply ok = RechargeStationReply.newBuilder().setOk(true).build();
                 responseObserver.onNext(ok);
                 responseObserver.onCompleted();
+                debug("[BATTERY] T" + "?" + " -> T" + "?" + " -   ok: i finished");
             }
             request.clear();
         }
@@ -29,6 +32,13 @@ public class PendingRechargeRequestQueue {
     public void appendPendingRequest(StreamObserver<RechargeStationReply> pending){
         synchronized (rechargeQueue_lock){
             request.add(pending);
+        }
+    }
+
+
+    private void debug(String msg){
+        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL){
+            System.out.println("debug: " + msg);
         }
     }
 

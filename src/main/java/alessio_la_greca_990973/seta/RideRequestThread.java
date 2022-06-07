@@ -8,7 +8,6 @@ import org.eclipse.paho.client.mqttv3.*;
 import ride.request.RideRequestMessageOuterClass;
 import ride.request.RideRequestMessageOuterClass.RideRequestMessage;
 
-import java.sql.Timestamp;
 import java.util.Random;
 
 public class RideRequestThread implements Runnable{
@@ -70,13 +69,11 @@ public class RideRequestThread implements Runnable{
                 Random rand = new Random();
 
                 int millis1 = rand.nextInt(requestDelay/2);
-                debug("first: sleeping for " + millis1);
                 Thread.sleep(millis1);
                 generateRequest();
 
 
                 int millis2  = rand.nextInt(requestDelay/2 - millis1);
-                debug("second: sleeping for " + millis2);
 
                 //Thread.sleep(millis2);
                 //generateRequest();
@@ -138,7 +135,8 @@ public class RideRequestThread implements Runnable{
 
         // Set the QoS on the Message
         message.setQos(qos);
-        debug("Publishing request number " + ID + " on district " + last);
+        debug("Publishing request number " + ID + " with coordinates ("+ rrm.getStartingX() + "," + rrm.getStartingY() +
+                ") -> (" + rrm.getArrivingX() + "," + rrm.getArrivingY()+ ") on district " + last);
         send(topic, message, ID);
 
     }
@@ -152,8 +150,8 @@ public class RideRequestThread implements Runnable{
 
             public void messageArrived(String topic, MqttMessage message) throws InvalidProtocolBufferException {
 
-                System.out.println("I received this message, bro:\n" +
-                        "Topic = " + topic + "\n");
+                //System.out.println("I received this message, bro:\n" +
+                //        "Topic = " + topic + "\n");
 
                 if(topic.equals(Commons.topicMessagesAcks)){
                     //acks, that means, this particular ride has been accomplished
@@ -169,10 +167,9 @@ public class RideRequestThread implements Runnable{
                     }
                     Seta.removePendingRequest(ack.getIdRequest(), d);
                 }else if(topic.equals(Commons.topicMessageArrivedInDistrict)){
-                    debug2("Taxi arrivato in un distretto");
                     //taxi arrived in a district
                     RideRequestMessageOuterClass.NotifyFromTaxi notify = RideRequestMessageOuterClass.NotifyFromTaxi.parseFrom(message.getPayload());
-                    debug2("Più info sul distretto = " + notify.getDistrict());
+                    debug("Taxi arrivato nel distretto = " + notify.getDistrict());
                     alessio_la_greca_990973.smart_city.District true_d = alessio_la_greca_990973.smart_city.District.DISTRICT_ERROR;
                     switch(notify.getDistrict()){
                         case DISTRICT1: true_d = alessio_la_greca_990973.smart_city.District.DISTRICT1; break;
@@ -181,7 +178,6 @@ public class RideRequestThread implements Runnable{
                         case DISTRICT4: true_d = alessio_la_greca_990973.smart_city.District.DISTRICT4; break;
                         case DISTRICT_ERROR: true_d = alessio_la_greca_990973.smart_city.District.DISTRICT_ERROR; break;
                     }
-                    debug2("ALLORA IL TAXI E' ARRIVATO NEL DISTRETTO " + true_d);
                     String last = true_d.toString().toLowerCase();
                     String resend_topic = "seta/smartcity/rides/" + last;
 
@@ -196,11 +192,11 @@ public class RideRequestThread implements Runnable{
             }
 
             public void deliveryComplete(IMqttDeliveryToken token) {
-                try {
+                /*try {
                     debug("delivered msg " + token.toString() + ", " + token.getMessage() + token.getResponse() + ", " + token.getTopics());
                 } catch (MqttException e) {
                     throw new RuntimeException(e);
-                }
+                }*/
             }
 
         });
@@ -221,9 +217,7 @@ public class RideRequestThread implements Runnable{
     public void send(String topic, MqttMessage message, int IDrequest){
         synchronized (requests_lock){
             try {
-                System.out.println("allora, publishing, usando il metodo SEND, la richiesta " + IDrequest);
                 client.publish(topic, message);
-                System.out.println("pubblicata la " + IDrequest);
             } catch (MqttException e) {
                 System.out.println("SETA: errore! " + e.getMessage() + ", \n" + e.getReasonCode() + ", \n" + e.getCause() +
                         ", \n" + e.getStackTrace() + ", \n" + e.toString());
@@ -235,14 +229,17 @@ public class RideRequestThread implements Runnable{
 
     public void resend(String resend_topic, alessio_la_greca_990973.smart_city.District true_d){
             //now that we have the topic, let's send again the pending requests for that district.
-        debug("sending once again the pending requests for district " + true_d + ", since a taxi notified its presence there. " +
-                "The number of pending requests is " + Seta.getPendingRequests(true_d).size());
+        //debug("sending once again the pending requests for district " + true_d + ", since a taxi notified its presence there. " +
+        //        "The number of pending requests is " + Seta.getPendingRequests(true_d).size());
         for(RideRequestMessage rrm : Seta.getPendingRequests(true_d)) {
             MqttMessage resend_message = new MqttMessage(rrm.toByteArray());
             // Set the QoS on the Message
             resend_message.setQos(qos);
 
             send(resend_topic, resend_message, rrm.getId());
+            debug("Publishing request number " + rrm.getId() + " with coordinates (" + rrm.getStartingX() + "," +
+                    rrm.getStartingY() + ") on district " + true_d + "(again)");
+
 
             //debug("in particular, sending request ID " + rrm.getId());
         }

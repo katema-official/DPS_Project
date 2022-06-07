@@ -37,8 +37,6 @@ public class BatteryRequest implements Runnable{
 
     @Override
     public void run() {
-        debug("I, taxi " + thisTaxi.getId() + ", am asking to taxi " + taxiToRequest.getId() +
-                " to accesso to the recharge station of district " + this.myDistrict);
 
         //I ask to another taxi of my district (or, at least, that was present in my district at the moment
         //of the request) if I can get access to the shared resource, that is, the recharge station.
