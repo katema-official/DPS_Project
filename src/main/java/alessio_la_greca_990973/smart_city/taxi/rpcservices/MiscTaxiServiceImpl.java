@@ -51,9 +51,17 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
     public void mayIRecharge(RechargeStationRequest input, StreamObserver<RechargeStationReply> responseObserver){
         //this gets invoked when another taxi is asking me to recharge
 
+        //if I'm exiting, i reply ok to everyone
+        RechargeStationReply ok = RechargeStationReply.newBuilder().setOk(true).build();
+        if(taxi.getState() == Commons.EXITING){
+            responseObserver.onNext(ok);
+            responseObserver.onCompleted();
+            debug("[BATTERY] T" + taxi.getId() + " -> T" + input.getId() + " -   ok: I'm exiting");
+        }
+
         //if taxi asking me to recharge is not in my same district,
         //I reply ok immediately to him.
-        RechargeStationReply ok = RechargeStationReply.newBuilder().setOk(true).build();
+
         if(!input.getDistrict().toString().equals(SmartCity.getDistrict(taxi.getCurrX(), taxi.getCurrY()).toString())){
             responseObserver.onNext(ok);
             responseObserver.onCompleted();
@@ -98,6 +106,14 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
 
         TaxiCoordinationReply yes = TaxiCoordinationReply.newBuilder().setOk(true).build();
         TaxiCoordinationReply no = TaxiCoordinationReply.newBuilder().setOk(false).build();
+
+        //if I'm exiting, I can reply ok immediately
+        if(taxi.getState() == Commons.EXITING){
+            responseObserver.onNext(yes);
+            responseObserver.onCompleted();
+            return;
+        }
+
         //if the request comes from a taxi of another district, I can reply ok to him immediately
         if(SmartCity.getDistrict(taxi.getCurrX(), taxi.getCurrY()) != SmartCity.getDistrict(input.getX(), input.getY())){
             responseObserver.onNext(yes);
@@ -173,6 +189,21 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
         responseObserver.onCompleted();
 
     }
+
+
+    @Override
+    public void iAmExiting(ExitingAnnouncement ea, StreamObserver<ExitingOk> streamObserver) {
+        //used to notify a taxi that another one (the one contained in ea) is exiting from the smart city
+        int idToRemove = ea.getTaxiId();
+        synchronized (taxi.otherTaxisLock) {
+            taxi.getOtherTaxis().remove(idToRemove);
+        }
+        ExitingOk response = ExitingOk.newBuilder().setOk(true).build();
+        streamObserver.onNext(response);
+        streamObserver.onCompleted();
+    }
+
+
 
     private void debug(String msg){
         if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL){

@@ -60,6 +60,19 @@ message SatisfiedRequest{
 
 message Void{}
 
+//-----------------------------------------------------
+
+//message for telling to the other taxis that I'm disconnecting
+message ExitingAnnouncement{
+  int32 taxiId = 1;
+}
+
+message ExitingOk{
+  bool ok = 1;
+}
+
+
+
 service MiscTaxiService{
   rpc welcomeImANewTaxi(NewTaxiPresentation) returns (OldTaxiPresentation);
 
@@ -68,6 +81,8 @@ service MiscTaxiService{
   rpc mayITakeCareOfThisRequest(TaxiCoordinationRequest) returns (TaxiCoordinationReply);
 
   rpc ITookCareOfThisRequest(SatisfiedRequest) returns (Void);
+
+  rpc IAmExiting(ExitingAnnouncement) returns (ExitingOk);
 }
 
 

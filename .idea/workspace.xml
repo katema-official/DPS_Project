@@ -12,20 +12,26 @@
       <change beforePath="$PROJECT_DIR$/.gradle/6.7/javaCompile/classAnalysis.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/javaCompile/classAnalysis.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/6.7/javaCompile/javaCompile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/6.7/javaCompile/javaCompile.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/classes/java/main/alessio_la_greca_990973/client/AdministratorClient.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/java/main/alessio_la_greca_990973/client/AdministratorClient.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/classes/java/main/alessio_la_greca_990973/commons/Commons.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/java/main/alessio_la_greca_990973/commons/Commons.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/classes/java/main/alessio_la_greca_990973/seta/RideRequestThread.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/java/main/alessio_la_greca_990973/seta/RideRequestThread.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/classes/java/main/alessio_la_greca_990973/smart_city/taxi/Taxi.class" beforeDir="false" afterPath="$PROJECT_DIR$/build/classes/java/main/alessio_la_greca_990973/smart_city/taxi/Taxi.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/tmp/compileJava/source-classes-mapping.txt" beforeDir="false" afterPath="$PROJECT_DIR$/build/tmp/compileJava/source-classes-mapping.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/client/AdministratorClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/client/AdministratorClient.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/commons/Commons.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/commons/Commons.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/fortaxi/ClientRestService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/fortaxi/ClientRestService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/fortaxi/datas/TaxiRegisteredOnTheServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/server/fortaxi/datas/TaxiRegisteredOnTheServer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/seta/RideRequestThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/seta/RideRequestThread.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/PendingRechargeRequestQueue.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/PendingRechargeRequestQueue.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/seta/SetaSubscriberThread.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/Taxi.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/Taxi.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/TaxiMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/TaxiMain.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/pollution_simulator/PollutionSimulatorThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/pollution_simulator/PollutionSimulatorThread.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/rpcservices/MiscTaxiServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/rpcservices/MiscTaxiServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/BatteryManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/BatteryManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/BatteryRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/BatteryRequest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/IdleThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/IdleThread.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/StatisticsThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/alessio_la_greca_990973/smart_city/taxi/threads/StatisticsThread.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/proto/MiscTaxiService.proto" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/proto/MiscTaxiService.proto" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -212,7 +218,7 @@
       <workItem from="1654459290864" duration="7277000" />
       <workItem from="1654499303778" duration="30025000" />
       <workItem from="1654581195752" duration="1970000" />
-      <workItem from="1654600033472" duration="1358000" />
+      <workItem from="1654600033472" duration="17483000" />
     </task>
     <servers />
   </component>

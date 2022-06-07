@@ -8,7 +8,6 @@ import alessio_la_greca_990973.smart_city.taxi.TaxiTaxiRepresentation;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.stub.StreamObserver;
 import org.eclipse.paho.client.mqttv3.*;
 import ride.request.RideRequestMessageOuterClass;
 import ride.request.RideRequestMessageOuterClass.*;
@@ -123,7 +122,7 @@ public class IdleThread implements Runnable{
     @Override
     public void run() {
 
-        while(true) { //TODO: !taxiHasToTerminate
+        while(thisTaxi.getState() != Commons.EXITING) {
             //first of all, let's check if we have to recharge the battery
             debug("start of the cycle");
             if(thisTaxi.getBatteryLevel() <= 30 || thisTaxi.getExplicitRechargeRequest() == true){
@@ -141,8 +140,12 @@ public class IdleThread implements Runnable{
                     } catch (InterruptedException e) {throw new RuntimeException(e);}
                 }
 
-                //TODO: potrei essere svegliato anche quando in realtà devo uscire. In tal caso,
-                //if(devoUscire), basta
+                //If I've been awakend not because every other taxi replyed ok to me but because
+                //I need to leave, I
+                //sa
+                if(thisTaxi.getState() == Commons.EXITING){
+                    break;
+                }
             }
 
             //if there are pending ride requests, take the first available one and ask the others about it.
@@ -251,29 +254,8 @@ public class IdleThread implements Runnable{
 
 
         }
-        //This thread has the role of hearing the ride requests it receives and to fulfill them.
-        //fulfilling means also coordinating with other taxis and eventually letting someone else take care of them.
-
-
-        /*
-        //just for trying
-
-        while(thisTaxi.getBatteryLevel() >= 30){
-
-            try {
-                Thread.sleep(250);
-                thisTaxi.subtractPercentageFromBatteryLevel(10);
-                debug("battery level: " + thisTaxi.getBatteryLevel());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-        }
-
-        synchronized (thisTaxi.alertBatteryRecharge) {
-            thisTaxi.alertBatteryRecharge.notify();
-        }
-        */
+        //the thread comes here when we tell the taxi to stop
+        closeMqttSubscriberConnection();
 
 
     }
@@ -390,7 +372,7 @@ public class IdleThread implements Runnable{
         }
     }
 
-    private void closeMqttSubscriberConnection(){
+    public void closeMqttSubscriberConnection(){
         try {
             client.disconnect();
         }catch (MqttException me) {

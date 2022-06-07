@@ -47,7 +47,7 @@ public class AdministratorClient {
                         Integer id = tryParseInt(split[1]);
                         Integer n = tryParseInt(split[2]);
                         if(id == null || n == null) {
-                            System.out.println("Error: you must specify an \"id\" and an \"n\" to get the statistics. Type \"help\" for more informations");
+                            System.out.println("Err: you must specify an \"id\" and an \"n\" to get the statistics. Type \"help\" for more informations");
                         }else{
                             printStatistics(client, id, n);
                         }
@@ -56,7 +56,7 @@ public class AdministratorClient {
                         Double t1 = tryParseDouble(split[1]);
                         Double t2 = tryParseDouble(split[2]);
                         if(t1 == null || t2 == null){
-                            System.out.println("Error: you must specify a minimum timestamp \"t1\" and a maximum timestamp \"t2\" to get the statistics. Type \"help\" for more informations");
+                            System.out.println("Err: you must specify a minimum timestamp \"t1\" and a maximum timestamp \"t2\" to get the statistics. Type \"help\" for more informations");
                         }else{
                             printTimestamps(client, t1, t2);
                         }

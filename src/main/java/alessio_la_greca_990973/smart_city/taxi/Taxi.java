@@ -55,7 +55,6 @@ public class Taxi implements Runnable{
 
 
     private Server taxiService;
-    private Object termination;
 
 
 
@@ -77,11 +76,16 @@ public class Taxi implements Runnable{
     public boolean explicitRechargeRequest;
     private Object explicitRechargeRequest_lock;
 
-
     public Object incomingRequests_lock;
 
 
     private StatisticsThread st;
+
+
+
+    private Client client;
+    private String serverAddress;
+
 
     public Taxi(int ID, String host) {
         this.ID = ID;
@@ -92,7 +96,6 @@ public class Taxi implements Runnable{
 
         otherTaxis = new HashMap<>();
         otherTaxisLock = new Object();
-        termination = new Object();
         alertBatteryRecharge = new Object();
         stateLock = new Object();
         incomingRequests_lock = new Object();
@@ -105,14 +108,15 @@ public class Taxi implements Runnable{
 
         explicitRechargeRequest = false;
         explicitRechargeRequest_lock = new Object();
+
     }
 
     public void run() {
         /*Once it is launched, the Taxi process must register itself to the
         system through the Administrator Server*/
 
-        Client client = Client.create();
-        String serverAddress = "http://localhost:1337";
+        client = Client.create();
+        serverAddress = "http://localhost:1337";
         ClientResponse clientResponse = null;
 
         //add taxi
@@ -128,10 +132,6 @@ public class Taxi implements Runnable{
             TaxiReplyToJoin reply = clientResponse.getEntity(TaxiReplyToJoin.class);
             currX = reply.getStartingX();
             currY = reply.getStartingY();
-
-            //TODO: remove
-            //currX = 0;
-            //currY = 0;
 
             List<TaxiServerRepresentation> taxis = reply.getCurrentTaxis();
 
@@ -181,23 +181,6 @@ public class Taxi implements Runnable{
             Thread t1 = new Thread(it);
             t1.start();
 
-
-
-            //-----------------------------debug-------------------------------
-            /*
-            debug("Your taxi is now in the city. Here are some infos:\n" +
-                    currX + "\n" +
-                    currY + "\n");
-            taxis = reply.getCurrentTaxis();
-            if (taxis != null) {
-                for (Map.Entry<Integer, TaxiTaxiRepresentation> entry : otherTaxis.entrySet()) {
-                    debug(entry.getValue().getId() + "\n" + entry.getValue().getListeningPort() + "\n" +
-                            "(" + entry.getValue().getCurrX() + "," + entry.getValue().getCurrY() + ")");
-                }
-            }
-             */
-            //----------------------------end debug-----------------------------
-
             synchronized (TaxiMain.taxiMain_lock){
                 TaxiMain.ok = 1;
                 TaxiMain.taxiMain_lock.notify();
@@ -205,7 +188,6 @@ public class Taxi implements Runnable{
 
             try {
                 taxiService.awaitTermination();
-                System.out.println("TERMINATED!");
             } catch (InterruptedException e) {throw new RuntimeException(e);}
 
         }else{
@@ -235,6 +217,21 @@ public class Taxi implements Runnable{
         }
     }
 
+    public static ClientResponse deleteRequestLeave(Client client, String url, int taxiId){
+        WebResource webResource = client.resource(url + "?id=" + taxiId);
+        try {
+            return webResource.delete(ClientResponse.class);
+        } catch (ClientHandlerException e) {
+            System.out.println("Server non disponibile");
+            return null;
+        }
+    }
+
+
+
+
+
+
 
     private void debug(String message){
         if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL){
@@ -258,6 +255,54 @@ public class Taxi implements Runnable{
     }
 
     public void shutdownTaxiServer(){
+        setState(Commons.EXITING);
+
+        //we have to wake up the taxi from possible waiting states:
+        //1) the taxi could be waiting for a request
+        synchronized (incomingRequests_lock) {
+            incomingRequests_lock.notify();
+        }
+
+        //2) the taxi could be waiting to recharge
+        synchronized (alertBatteryRecharge) {
+            alertBatteryRecharge.notify();
+        }
+        synchronized(batteryManager.canRecharge){
+            batteryManager.canRecharge.notify();
+        }
+
+
+        HashMap<Integer, TaxiTaxiRepresentation> otherTaxisToSayBye;
+        //we have to tell to every other taxi that we are exiting, and that they must forget about us
+        synchronized (otherTaxisLock) {
+            otherTaxisToSayBye = new HashMap<>(getOtherTaxis());
+        }
+
+        for(Map.Entry<Integer, TaxiTaxiRepresentation> entry : otherTaxisToSayBye.entrySet()) {
+            String host = entry.getValue().getHostname();
+            int port = entry.getValue().getListeningPort();
+            ManagedChannel channel = ManagedChannelBuilder.forTarget(host + ":" + port).usePlaintext().build();
+            MiscTaxiServiceBlockingStub stub = MiscTaxiServiceGrpc.newBlockingStub(channel);
+
+            ExitingAnnouncement ea = ExitingAnnouncement.newBuilder().setTaxiId(getId()).build();
+
+            ExitingOk reply = stub.iAmExiting(ea);
+            if(reply.getOk() != true){
+                System.out.println("Errore nel comunicare ad un altro taxi che sto uscendo");
+            }
+            channel.shutdown();
+        }
+
+        //now we can tell the server that we are going away
+        ClientResponse response = deleteRequestLeave(client, serverAddress + "/taxi/leave", getId());
+
+        //then, to make sure all other taxis receive responses from this one before it exits,
+        //we wait a bit of time, like five seconds
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {throw new RuntimeException(e);}
+
+
         taxiService.shutdownNow();
     }
 
@@ -321,10 +366,17 @@ public class Taxi implements Runnable{
         }
     }
 
-    public void setState(int state) {
+    public boolean setState(int state) {
+        //once the state has been set to EXITING, it cannot be further modified
+        //true = the state has been modified
+        //false = the state has not been modified (the state is exiting)
         synchronized (stateLock) {
-            this.state = state;
+            if(this.state != Commons.EXITING) {
+                this.state = state;
+                return true;
+            }
         }
+        return false;
     }
 
 

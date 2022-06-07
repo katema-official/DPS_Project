@@ -36,7 +36,8 @@ public class BatteryManager implements Runnable{
     }
 
     public void run(){
-        while(true){		//!taxiMustTerminate
+
+        while(thisTaxi.getState() != Commons.EXITING){
             synchronized(thisTaxi.alertBatteryRecharge){
                 try {
                     debug("waiting for recharge request...");
@@ -47,11 +48,14 @@ public class BatteryManager implements Runnable{
                     }
                 } catch (InterruptedException e) {throw new RuntimeException(e);}
                 //will wake up when the battery is below 30% OR when an explicit request of recharge is given
+                //...or when it was explicitly requested for the taxi to finish its execution (in that case,
+                //the text if will be evaluated to false
+
             }
 
             District currentDistrict = SmartCity.getDistrict(thisTaxi.getCurrX(), thisTaxi.getCurrY());
 
-            if(true){       //TODO: !taxiMustTerminate
+            if(thisTaxi.getState() != Commons.EXITING){
                 acks = 0;
                 synchronized (thisTaxi.otherTaxisLock){
                     currentParticipants = thisTaxi.getOtherTaxis().size();
@@ -84,55 +88,61 @@ public class BatteryManager implements Runnable{
                     } catch (InterruptedException e) {throw new RuntimeException(e);}
                 }
 
-                //TODO: canRecharge.notify potrebbe arrivare anche dal comando di exit. In quel caso,
-                //if(devoUscire), allora basta
+                //canRecharge.notify() could be invoked even if I'm asked to terminate. In that case, I don't
+                //recharge, but instead, I simply reply ok to all the taxis that were waiting
+                if(thisTaxi.getState() != Commons.EXITING){
 
-                /*Moreover, when a taxi acquires rights
-                to recharge its battery:*/
+                    /*Moreover, when a taxi acquires rights
+                    to recharge its battery:*/
 
-                /*it consumes 1% of its battery level for each kilometer traveled to reach
-                the recharge station*/
-                int[] rechargeCoordinates = SmartCity.getCoordinatesForRechargeStation(
-                        SmartCity.getDistrict(thisTaxi.getCurrX(), thisTaxi.getCurrY()));
+                    /*it consumes 1% of its battery level for each kilometer traveled to reach
+                    the recharge station*/
+                    int[] rechargeCoordinates = SmartCity.getCoordinatesForRechargeStation(
+                            SmartCity.getDistrict(thisTaxi.getCurrX(), thisTaxi.getCurrY()));
 
-                int distance = (int) SmartCity.distance(thisTaxi.getCurrX(), thisTaxi.getCurrY(),
-                        rechargeCoordinates[0], rechargeCoordinates[1]);
+                    int distance = (int) SmartCity.distance(thisTaxi.getCurrX(), thisTaxi.getCurrY(),
+                            rechargeCoordinates[0], rechargeCoordinates[1]);
 
-                thisTaxi.subtractPercentageFromBatteryLevel(distance);
+                    thisTaxi.subtractPercentageFromBatteryLevel(distance);
 
-                /*its position becomes the same as the cell of the recharge station of the
-                district in which the taxi is currently positioned.*/
-                synchronized (thisTaxi.incomingRequests_lock) {
-                    thisTaxi.setCurrX(rechargeCoordinates[0]);
-                    thisTaxi.setCurrY(rechargeCoordinates[1]);
-                }
-
-                debug("Starting to recharge...");
-
-                /*The recharging operation is simulated through a Thread.sleep() of 10
-                seconds.*/
-                try {
-                    Thread.sleep(10000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                synchronized (thisTaxi.stateLock) {
-                    thisTaxi.setState(Commons.IDLE);
-                    timestampOfRequest = 0;
-                    thisTaxi.setBatteryLevel(100);
-                    //we also notify the idle thread that the recharge process has completed
-                    synchronized (thisTaxi.rechargeComplete_lock){
-                        thisTaxi.rechargeComplete_lock.notify();
+                    /*its position becomes the same as the cell of the recharge station of the
+                    district in which the taxi is currently positioned.*/
+                    synchronized (thisTaxi.incomingRequests_lock) {
+                        thisTaxi.setCurrX(rechargeCoordinates[0]);
+                        thisTaxi.setCurrY(rechargeCoordinates[1]);
                     }
+
+                    debug("Starting to recharge...");
+
+                    /*The recharging operation is simulated through a Thread.sleep() of 10
+                    seconds.*/
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    synchronized (thisTaxi.stateLock) {
+                        thisTaxi.setState(Commons.IDLE);
+                        timestampOfRequest = 0;
+                        thisTaxi.setBatteryLevel(100);
+                        //we also notify the idle thread that the recharge process has completed
+
+                    }
+                    debug("RECHARGED");
                 }
+
                 thisTaxi.getQueue().sendOkToAllPendingRequests();
-                debug("RECHARGED");
 
 
             }
 
+            synchronized (thisTaxi.rechargeComplete_lock){
+                thisTaxi.rechargeComplete_lock.notify();
+            }
+
         }
+
     }
 
 

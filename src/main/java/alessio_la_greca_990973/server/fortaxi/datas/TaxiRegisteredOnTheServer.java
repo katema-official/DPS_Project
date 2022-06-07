@@ -238,15 +238,6 @@ public class TaxiRegisteredOnTheServer {
             average.setPollutionAverage(totalSumPollutions / (double) pollutionsTotal.size());
             average.setBatteryLevel(sumBattery / n);
 
-            System.out.println("not divided: " + totalSumPollutions);
-            System.out.println("not divided: " + sumKilometers);
-            System.out.println("calculated: " + (totalSumPollutions / (double) pollutionsTotal.size()));
-            System.out.println("given: " + average.getPollutionAverage());
-
-            System.out.println("calculated: " + (sumKilometers / (double) n));
-            System.out.println("given: " + average.getKilometers());
-
-
             return average;
         }
 

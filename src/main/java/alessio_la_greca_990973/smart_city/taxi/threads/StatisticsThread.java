@@ -36,7 +36,8 @@ public class StatisticsThread implements Runnable{
 
     @Override
     public void run() {
-        while(true){        //TODO: !taxiDeveTerminare
+
+        while(thisTaxi.getState() != Commons.EXITING){
             try {
                 Thread.sleep(15000);
             } catch (InterruptedException e) {

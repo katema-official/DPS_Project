@@ -1,5 +1,6 @@
 package alessio_la_greca_990973.smart_city.taxi.pollution_simulator;
 
+import alessio_la_greca_990973.commons.Commons;
 import alessio_la_greca_990973.simulator.Measurement;
 import alessio_la_greca_990973.simulator.PM10Simulator;
 import alessio_la_greca_990973.smart_city.taxi.Taxi;
@@ -34,7 +35,7 @@ public class PollutionSimulatorThread implements Runnable{
         PM10Simulator sim = new PM10Simulator(buffer);
         sim.start();
 
-        while(true){        //TODO: !ilTaxiDeveTerminare
+        while(thisTaxi.getState() != Commons.EXITING){
 
             synchronized (alert){
                 try {
@@ -53,6 +54,7 @@ public class PollutionSimulatorThread implements Runnable{
                 } catch (InterruptedException e) {throw new RuntimeException(e);}
             }
         }
+        sim.stopMeGently();
     }
 
 

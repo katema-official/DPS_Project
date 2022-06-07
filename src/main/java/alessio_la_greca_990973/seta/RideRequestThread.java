@@ -68,18 +68,20 @@ public class RideRequestThread implements Runnable{
             try {
                 Random rand = new Random();
 
-                int millis1 = rand.nextInt(requestDelay/2);
+                int millis1 = rand.nextInt(requestDelay);
                 Thread.sleep(millis1);
                 generateRequest();
 
 
-                int millis2  = rand.nextInt(requestDelay/2 - millis1);
+                int millis2  = rand.nextInt(requestDelay - millis1);
 
-                //Thread.sleep(millis2);
-                //generateRequest();
+                Thread.sleep(millis2);
+                generateRequest();
 
-                //debug("third: sleeping for " + (requestDelay - millis1 - millis2));
-                //Thread.sleep((requestDelay + 1) - millis1 - millis2);
+                int residual = requestDelay - millis1 - millis2;
+                if(residual > 0) {
+                    Thread.sleep(residual);
+                }
 
 
             } catch (InterruptedException e) {
@@ -157,6 +159,7 @@ public class RideRequestThread implements Runnable{
                     //acks, that means, this particular ride has been accomplished
                     RideRequestMessageOuterClass.AckFromTaxi ack = RideRequestMessageOuterClass.AckFromTaxi.parseFrom(message.getPayload());
                     debug("acked request " + ack.getIdRequest() + " of district " + ack.getDistrict());
+                    System.out.println("req " + ack.getIdRequest());
                     alessio_la_greca_990973.smart_city.District d = alessio_la_greca_990973.smart_city.District.DISTRICT_ERROR;
                     switch(ack.getDistrict()){
                         case DISTRICT1: d = alessio_la_greca_990973.smart_city.District.DISTRICT1; break;

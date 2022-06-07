@@ -49,7 +49,6 @@ public class TaxiMain {
                     while (true) {
                         //try {
                             //line = reader.readLine();
-                            System.out.println("entratino");
                             line = scan.nextLine();
                             System.out.println("Line = " + line);
                         //} catch (IOException e) {
@@ -58,6 +57,10 @@ public class TaxiMain {
                         if (line.equals("recharge")) {
                             System.out.println("Recharge request accepted");
                             taxi.setExplicitRechargeRequest(true);
+                        }else if(line.equals("quit")){
+                            System.out.println("Quit request accepted");
+                            taxi.shutdownTaxiServer();
+                            break;
                         }
                     }
                 }
