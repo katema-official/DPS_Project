@@ -23,7 +23,7 @@ public class TaxiRegisteredOnTheServer {
     private HashMap<Integer, TaxiServerRepresentation> actualTaxis;
 
     @XmlElement(name = "taxiStatistics")
-    private HashMap<Integer, ArrayList<TaxiStatisticWithTimestamp>> taxiStatistics;    //TODO getter di vario tipo per il client
+    private HashMap<Integer, ArrayList<TaxiStatisticWithTimestamp>> taxiStatistics;
 
     private static TaxiRegisteredOnTheServer instance;
 

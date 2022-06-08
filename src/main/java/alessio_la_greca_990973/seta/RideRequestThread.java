@@ -114,9 +114,6 @@ public class RideRequestThread implements Runnable{
         message.setQos(qos);
         send(topic, message, ID);
 
-        System.out.println("Request id: " + ID + " from district " + SmartCity.getDistrict(startingX, startingY) +
-                 " to district " + SmartCity.getDistrict(arrivingX, arrivingY));
-
 
     }
 

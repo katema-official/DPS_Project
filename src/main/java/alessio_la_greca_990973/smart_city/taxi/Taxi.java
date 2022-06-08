@@ -270,9 +270,6 @@ public class Taxi implements Runnable{
             ExitingAnnouncement ea = ExitingAnnouncement.newBuilder().setTaxiId(getId()).build();
 
             ExitingOk reply = stub.iAmExiting(ea);
-            if(reply.getOk() != true){
-                System.out.println("Errore nel comunicare ad un altro taxi che sto uscendo");
-            }
             channel.shutdown();
         }
 

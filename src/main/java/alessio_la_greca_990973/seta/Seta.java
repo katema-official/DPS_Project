@@ -77,7 +77,6 @@ public class Seta {
             if(toRemove != null){
                 requests.remove(toRemove);
                 pendingRequestsHashMap.put(district, requests);
-                System.out.println("Request " + id + " satisfied");
             }
 
         }

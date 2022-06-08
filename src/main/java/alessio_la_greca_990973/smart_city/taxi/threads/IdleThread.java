@@ -154,7 +154,6 @@ public class IdleThread implements Runnable{
 
 
                 if(ret){
-                    System.out.println("I HANDLE REQUEST NUMBER " + currentRequestBeingProcessed);
                     double toLower1 = 0D;
                     double toLower2 = 0D;
                     setIncomingRequestToTrue(currentRequestBeingProcessed);
@@ -227,9 +226,7 @@ public class IdleThread implements Runnable{
                 synchronized (thisTaxi.incomingRequests_lock) {
                     try {
                         //we wait until there is a new request in the queue.
-                        System.out.println("waiting");
                         thisTaxi.incomingRequests_lock.wait();
-                        System.out.println("awakened");
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
@@ -289,7 +286,6 @@ public class IdleThread implements Runnable{
 
         if(newD != oldD){
             String topic = "seta/smartcity/rides/" + newD.toString().toLowerCase();
-            System.out.println("Changing district: from " + oldD + " to " + newD);
             try{
 
 
@@ -375,7 +371,6 @@ public class IdleThread implements Runnable{
                 }
             }
         }
-        System.out.println("unsatisfied = " + unsatisfied);
         return unsatisfied;
     }
 
@@ -389,8 +384,6 @@ public class IdleThread implements Runnable{
                 }
             }
             incomingRequests.put(rrm, false);   //for me, initially, the new request has not been satisfied
-            System.out.println("Arrived request " + rrm.getId() + " for the district " + SmartCity.getDistrict(rrm.getStartingX(), rrm.getStartingY()) +
-                    " to the district " + SmartCity.getDistrict(rrm.getArrivingX(), rrm.getArrivingY()));
             thisTaxi.incomingRequests_lock.notify();
         }
     }
@@ -411,7 +404,6 @@ public class IdleThread implements Runnable{
                 }
             }
         }
-        System.out.println("returned incoming request = " + (ret != null ? ret.getId() : null));
 
         return ret;
     }

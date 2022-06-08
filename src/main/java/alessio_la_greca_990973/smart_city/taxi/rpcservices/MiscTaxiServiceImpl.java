@@ -125,7 +125,6 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
         if(input.getIdRideRequest() != idleThread.currentRequestBeingProcessed){
             //if I know it has already been satisfied, I can respond no to him
             if(idleThread.getIncomingRequestValue(input.getIdRideRequest()) == true){
-                System.out.println("T" + taxi.getId() + " -> T" + input.getTaxiId() + ") No because mama told me it's already been satisfied");
                 responseObserver.onNext(no);
                 responseObserver.onCompleted();
             }else {
@@ -137,21 +136,17 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
             //in this case, the request is from a taxi from my same district AND the id of the taxi request is the same
             //as the one I'm currently considering.
             //The last question is: is this taxi in my set of participating taxis for this election?
-            System.out.println("ELECTION: deciding on " + idleThread.currentRequestBeingProcessed);
             if(!idleThread.isThisTaxiInThisElection(input.getTaxiId())){
                 //if no, let's just tell him that another taxi between all of us will take care of this ride
-                System.out.println("(T" + taxi.getId() + " -> T" + input.getTaxiId() + ") No because you are not in my election");
                 responseObserver.onNext(no);
                 responseObserver.onCompleted();
             }else{
                 //if yes, let's see: who's closer? Who has the most battery? Who has the highest ID?
                 boolean res = idleThread.compareTaxis(input);
                 if(res){
-                    System.out.println("(T" + taxi.getId() + " -> T" + input.getTaxiId() + ") Yes, you win somehow");
                     responseObserver.onNext(yes);
                     responseObserver.onCompleted();
                 }else{
-                    System.out.println("(T" + taxi.getId() + " -> T" + input.getTaxiId() + ") No, I win somehow");
                     responseObserver.onNext(no);
                     responseObserver.onCompleted();
                 }

@@ -43,17 +43,13 @@ public class TaxiMain {
                     }
                 }
 
-                System.out.println("ok = " + ok);
                 if(ok == 1) {
                     //from now on, it's just the command line for giving orders to the taxi
                     while (true) {
-                        //try {
-                            //line = reader.readLine();
-                            line = scan.nextLine();
-                            System.out.println("Line = " + line);
-                        //} catch (IOException e) {
-                          //  e.printStackTrace();
-                        //}
+
+                        line = scan.nextLine();
+                        System.out.println("Line = " + line);
+
                         if (line.equals("recharge")) {
                             System.out.println("Recharge request accepted");
                             taxi.setExplicitRechargeRequest(true);
