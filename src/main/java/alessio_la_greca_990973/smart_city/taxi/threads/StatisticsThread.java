@@ -17,7 +17,6 @@ import java.util.ArrayList;
 
 public class StatisticsThread implements Runnable{
 
-    private boolean DEBUG_LOCAL = true;
     private Taxi thisTaxi;
     private PollutionSimulatorThread pollutionSimulator;
 
@@ -55,7 +54,6 @@ public class StatisticsThread implements Runnable{
              -The timestamp in which the local statistics were computed
              -The current battery level of the Taxi*/
             sendCurrentStatisticsToServer();
-            //debug("STATISTICS SENT!");
         }
     }
 
@@ -72,22 +70,15 @@ public class StatisticsThread implements Runnable{
         //send to the server
         Client client = Client.create();
         String serverAddress = "http://localhost:1337";
-        ClientResponse clientResponse = null;
 
-        //add taxi
-        clientResponse = postStatistics(client, serverAddress + "/taxi/append", packet);
-        //debug(clientResponse.toString());
-        if(clientResponse.getStatus() == 200) {
+        postStatistics(client, serverAddress + "/taxi/append", packet);
 
-        }else{
-            debug("ERROR in sending statistics to server (from taxi " + thisTaxi.getId() + ")");
-        }
 
     }
 
-    public static ClientResponse postStatistics(Client client, String url, TaxiStatisticsPacket taxi){
+    public static ClientResponse postStatistics(Client client, String url, TaxiStatisticsPacket taxiStats){
         WebResource webResource = client.resource(url);
-        String input = new Gson().toJson(taxi);
+        String input = new Gson().toJson(taxiStats);
         try {
             return webResource.type("application/json").post(ClientResponse.class, input);
         } catch (ClientHandlerException e) {
@@ -128,11 +119,5 @@ public class StatisticsThread implements Runnable{
     }
 
 
-
-    private void debug(String message){
-        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL){
-            System.out.println("debug: " + message);
-        }
-    }
 
 }

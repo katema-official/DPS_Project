@@ -19,7 +19,6 @@ import java.util.ArrayList;
 
 public class AdministratorClient {
 
-    private static boolean DEBUG_LOCAL = true;
     public static void main(String args[]){
 
         Client client = Client.create();
@@ -33,7 +32,7 @@ public class AdministratorClient {
             reader = new BufferedReader(new InputStreamReader(System.in));
             try {
                 line = reader.readLine();
-                debug("line = " + line);
+                System.out.println("inserted = " + line);
             } catch (IOException e) {e.printStackTrace();}
 
             if(line.equals("help")) {
@@ -171,9 +170,5 @@ public class AdministratorClient {
         }
     }
 
-    private static void debug(String message){
-        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL) System.out.println(message);
-
-    }
 
 }

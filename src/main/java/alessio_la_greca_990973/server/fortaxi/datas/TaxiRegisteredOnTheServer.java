@@ -15,7 +15,6 @@ import java.util.*;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class TaxiRegisteredOnTheServer {
 
-    private final boolean DEBUG_LOCAL = true;
 
     //data structure used to represent the set of taxis currently
     //registered on the server, and so that are present in the
@@ -105,7 +104,6 @@ public class TaxiRegisteredOnTheServer {
             readersReadingTaxiStatistics.put(t.getId(), 0);
             writersWaitingTaxiStatistics.put(t.getId(), 0);
             writerActiveTaxiStatistics.put(t.getId(), false);
-            if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL) System.out.println("Taxi " + t.getId() + " joined the city");
         }
         //-------------------------------------------------------------------------------------------------------------
 
@@ -138,7 +136,6 @@ public class TaxiRegisteredOnTheServer {
             readersReadingTaxiStatistics.remove(id);
             writersWaitingTaxiStatistics.remove(id);
             writerActiveTaxiStatistics.remove(id);
-            if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL) System.out.println("Taxi " + id + " left the city");
         }
         //-------------------------------------------------------------------------------------------------------------
 
@@ -157,11 +154,9 @@ public class TaxiRegisteredOnTheServer {
         //to the statistics of one taxi by synchronizing on that taxi. In this way, multiple readers can read
         //the same values of the same taxi, but only one writer can write on it.
         int id = packet.getTaxiId();
-        debug("id = " + id);
 
         //allow = true means that the taxi still exists
         boolean allow = startTransactionOnTaxiStatisticsWRITER(id);
-        debug("allowed to put data in taxi " + id + "? " + allow);
         if(allow) {
             TaxiStatisticWithTimestamp stat = new TaxiStatisticWithTimestamp(packet.getKilometers(), packet.getRides(),
                     packet.getPollutionAverages(), packet.getBatteryLevel(), packet.getTimestamp());
@@ -328,7 +323,6 @@ public class TaxiRegisteredOnTheServer {
         int min = 0;
 
         while(max - min != 1){
-            if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL) System.out.println("min = " + min + ", max = " + max);
             int middle = min + (max - min)/2;
             double current_value = list.get(middle).getTimestamp();
             if(current_value >= t1){
@@ -432,7 +426,6 @@ public class TaxiRegisteredOnTheServer {
                         synchronized (taxi) {
                             readers += readersReadingTaxiStatistics.get(taxi.getId());
                             isSomeoneWriting |= writerActiveTaxiStatistics.get(taxi.getId());
-                            //TODO: you could break this for in the very moment readers > 0 || isSomeoneWriting == true
                         }
                     }
                     if (readers > 0 || isSomeoneWriting == true) {
@@ -605,11 +598,5 @@ public class TaxiRegisteredOnTheServer {
         }
     }
 
-
-    //--------------for debuggingpurposes------------
-    private void debug(String message){
-        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL) System.out.println(message);
-
-    }
 
 }

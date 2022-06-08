@@ -10,8 +10,6 @@ import java.util.HashMap;
 
 public class Seta {
 
-    private static boolean DEBUG_LOCAL = true;
-
     private static int progressive_ID = 0;
     public static Object progressive_id_lock;
     public static Object pending_requests_lock;
@@ -79,7 +77,7 @@ public class Seta {
             if(toRemove != null){
                 requests.remove(toRemove);
                 pendingRequestsHashMap.put(district, requests);
-                debug("Seta - removed pending request " + id + " from district " + district);
+                System.out.println("Request " + id + " satisfied");
             }
 
         }
@@ -87,13 +85,6 @@ public class Seta {
 
 
 
-
-
-    private static void debug(String msg){
-        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL){
-            System.out.println("debug: " + msg);
-        }
-    }
 
 
 

@@ -11,9 +11,8 @@ import javax.ws.rs.core.Response;
 
 @Path("taxi")
 public class TaxiRestService {
-    //rest service for inserting a new taxi
+    //rest service for inserting/deleting a taxi and to send statistics
 
-    private final boolean DEBUG_LOCAL = true;
 
     //service used by a taxi to add itself to the smart city
     @Path("join")
@@ -60,17 +59,10 @@ public class TaxiRestService {
     @Path("append")
     @POST
     public Response appendStatistic(TaxiStatisticsPacket packet){
-        debug("packet sending...");
         boolean success = TaxiRegisteredOnTheServer.getInstance().append(packet);
         if(success) return Response.ok().build();
-        debug("response is not ok");
         return Response.status(Response.Status.NOT_FOUND).build();
     }
 
-    private void debug(String message){
-        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL){
-            System.out.println(message);
-        }
-    }
 
 }

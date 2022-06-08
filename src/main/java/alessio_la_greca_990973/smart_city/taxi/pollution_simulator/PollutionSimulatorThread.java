@@ -5,7 +5,6 @@ import alessio_la_greca_990973.simulator.Measurement;
 import alessio_la_greca_990973.simulator.PM10Simulator;
 import alessio_la_greca_990973.smart_city.taxi.Taxi;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +49,6 @@ public class PollutionSimulatorThread implements Runnable{
                         Measurement m = new Measurement("pm10_mean-"+(ID++), "PM10", value, System.currentTimeMillis());
                         meanMeasurements.add(m);
                     }
-                    //System.out.println("generated m = " + m.getId() + ", " + m.getValue() + ", " + m.getTimestamp());
                 } catch (InterruptedException e) {throw new RuntimeException(e);}
             }
         }

@@ -14,8 +14,6 @@ import java.util.ArrayList;
 @Path("client")
 public class ClientRestService {
 
-    private final boolean DEBUG_LOCAL = true;
-
     @Path("taxis")
     @GET
     @Produces({"application/json", "application/xml"})

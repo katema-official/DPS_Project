@@ -25,13 +25,10 @@ import taxis.service.MiscTaxiServiceOuterClass.*;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 public class Taxi implements Runnable{
-
-    private static boolean DEBUG_LOCAL = true;
 
     private int ID;
     private String host;
@@ -158,9 +155,7 @@ public class Taxi implements Runnable{
             presents itself to the other taxis by sending them its position in the grid*/
             if (taxis != null) {
                 for (TaxiServerRepresentation t : taxis) {
-                    debug("Contacting port " + t.getListeningPort());
                     TaxiTaxiRepresentation ttr = new TaxiTaxiRepresentation(t.getId(), t.getHostname(), t.getListeningPort(), -1, -1);
-                    debug(t.getHostname() + ":" + t.getListeningPort());
                     OldTaxiPresentation oldTaxi = synchronousCallWelcome(t.getHostname(), t.getListeningPort());
                     ttr.setCurrX(oldTaxi.getCurrX());
                     ttr.setCurrY(oldTaxi.getCurrY());
@@ -224,18 +219,6 @@ public class Taxi implements Runnable{
         } catch (ClientHandlerException e) {
             System.out.println("Server non disponibile");
             return null;
-        }
-    }
-
-
-
-
-
-
-
-    private void debug(String message){
-        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL){
-            System.out.println("debug: " + message);
         }
     }
 

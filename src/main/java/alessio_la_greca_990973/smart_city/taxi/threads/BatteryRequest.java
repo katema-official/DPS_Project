@@ -18,7 +18,6 @@ public class BatteryRequest implements Runnable{
     private double myTimestamp;
     private MiscTaxiServiceOuterClass.District myDistrict;
 
-    private boolean DEBUG_LOCAL = true;
 
     public BatteryRequest(Taxi t, BatteryManager bm, TaxiTaxiRepresentation ttr,
                           double myTimestamp, District d){
@@ -62,12 +61,6 @@ public class BatteryRequest implements Runnable{
         RechargeStationReply ok = stub.mayIRecharge(request);
         channel.shutdown();
         return ok;
-    }
-
-    private void debug(String msg){
-        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL){
-            System.out.println("debug: " + msg);
-        }
     }
 
 }

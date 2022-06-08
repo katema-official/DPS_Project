@@ -18,9 +18,6 @@ public class BatteryManager implements Runnable{
     public Object canRecharge;
 
 
-    private BatteryListener batteryListener;
-    private boolean DEBUG_LOCAL = true;
-
     private double timestampOfRequest;
 
     public BatteryManager(Taxi t, BatteryListener bl){
@@ -28,11 +25,6 @@ public class BatteryManager implements Runnable{
         acks = 0;
         updateAcks = new Object();
         canRecharge = new Object();
-
-        //for correctly handling the recharge request of the current district, this taxi needs also to be always
-        //ready to reply to another taxi that asks him the permission to go recharge. To do this, we create another
-        //thread that simply listens to other taxis' recharge requests.
-        batteryListener = bl;
     }
 
     public void run(){
@@ -40,7 +32,6 @@ public class BatteryManager implements Runnable{
         while(thisTaxi.getState() != Commons.EXITING){
             synchronized(thisTaxi.alertBatteryRecharge){
                 try {
-                    debug("waiting for recharge request...");
                     thisTaxi.alertBatteryRecharge.wait();
                     synchronized (thisTaxi.stateLock) {
                         thisTaxi.setState(Commons.WANT_TO_RECHARGE);
@@ -49,8 +40,7 @@ public class BatteryManager implements Runnable{
                 } catch (InterruptedException e) {throw new RuntimeException(e);}
                 //will wake up when the battery is below 30% OR when an explicit request of recharge is given
                 //...or when it was explicitly requested for the taxi to finish its execution (in that case,
-                //the text if will be evaluated to false
-
+                //the next "if" will be evaluated to false)
             }
 
             District currentDistrict = SmartCity.getDistrict(thisTaxi.getCurrX(), thisTaxi.getCurrY());
@@ -112,8 +102,6 @@ public class BatteryManager implements Runnable{
                         thisTaxi.setCurrY(rechargeCoordinates[1]);
                     }
 
-                    debug("Starting to recharge...");
-
                     /*The recharging operation is simulated through a Thread.sleep() of 10
                     seconds.*/
                     try {
@@ -129,7 +117,6 @@ public class BatteryManager implements Runnable{
                         //we also notify the idle thread that the recharge process has completed
 
                     }
-                    debug("RECHARGED");
                 }
 
                 thisTaxi.getQueue().sendOkToAllPendingRequests();
@@ -149,7 +136,6 @@ public class BatteryManager implements Runnable{
     public void addAck(){
         synchronized (updateAcks) {
             this.acks++;
-            debug("number of received acks: " + acks + "/" + currentParticipants);
             if(acks == currentParticipants){
                 synchronized (canRecharge){
                     canRecharge.notify();
@@ -162,9 +148,4 @@ public class BatteryManager implements Runnable{
         return timestampOfRequest;
     }
 
-    private void debug(String msg){
-        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL){
-            System.out.println("debug: " + msg);
-        }
-    }
 }

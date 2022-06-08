@@ -3,7 +3,6 @@ package alessio_la_greca_990973.smart_city.taxi.pollution_simulator;
 import alessio_la_greca_990973.simulator.Buffer;
 import alessio_la_greca_990973.simulator.Measurement;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -17,7 +17,6 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
 
     private Taxi taxi;
     private BatteryListener batteryListener;
-    private boolean DEBUG_LOCAL = true;
     private IdleThread idleThread;
 
     public MiscTaxiServiceImpl(Taxi taxi, BatteryListener bl, IdleThread it){
@@ -39,8 +38,6 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
         //I tell him where I am.
         OldTaxiPresentation my_presentation = OldTaxiPresentation.newBuilder().setCurrX(taxi.getCurrX()).setCurrY(taxi.getCurrY()).build();
 
-        debug("my_presentation = " + my_presentation.getCurrX() + "," + my_presentation.getCurrY());
-
         responseObserver.onNext(my_presentation);
         responseObserver.onCompleted();
     }
@@ -56,7 +53,6 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
         if(taxi.getState() == Commons.EXITING){
             responseObserver.onNext(ok);
             responseObserver.onCompleted();
-            debug("[BATTERY] T" + taxi.getId() + " -> T" + input.getId() + " -   ok: I'm exiting");
         }
 
         //if taxi asking me to recharge is not in my same district,
@@ -65,7 +61,6 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
         if(!input.getDistrict().toString().equals(SmartCity.getDistrict(taxi.getCurrX(), taxi.getCurrY()).toString())){
             responseObserver.onNext(ok);
             responseObserver.onCompleted();
-            debug("[BATTERY] T" + taxi.getId() + " -> T" + input.getId() + " -   ok: different district");
         }else{
 
             //this is already synchronized in the getState() method
@@ -75,25 +70,19 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
                 //if I'm not interested in recharging, I can just send an ok message to the request
                 responseObserver.onNext(ok);
                 responseObserver.onCompleted();
-                debug("[BATTERY] T" + taxi.getId() + " -> T" + input.getId() + " -   ok: I'm not interested");
             }else if(currentState == Commons.WANT_TO_RECHARGE){
                 //If instead I want to access the resource, check:
                 //this guy that is contacting me, asked to access the resource before me?
                 if(input.getTimestamp() < taxi.getBatteryManager().getTimestampOfRequest()){
                     responseObserver.onNext(ok);
                     responseObserver.onCompleted();
-                    debug("[BATTERY] T" + taxi.getId() + " -> T" + input.getId() + " -   ok: your timestamp is lower");
-
                 }else{
                     //Otherwise, I asked to access before him, so I must put him in the queue.
                     batteryListener.getQueue().appendPendingRequest(responseObserver);
-                    debug("[BATTERY] T" + taxi.getId() + " -> T" + input.getId() + " - wait: your timestamp is higher");
-
                 }
             }else if(currentState == Commons.RECHARGING){
                 //if I'm using the resource, I can't reply immediately. Others will have to wait
                 batteryListener.getQueue().appendPendingRequest(responseObserver);
-                debug("[BATTERY] T" + taxi.getId() + " -> T" + input.getId() + " - wait: I'm recharging rn");
             }
         }
     }
@@ -121,14 +110,6 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
             return;
         }
 
-        //if the request that arrived to me right now is from a taxi of my same district and I know
-        //it has already been satisfied, I can respond no to him
-        if(idleThread.getIncomingRequestValue(input.getIdRideRequest()) == true){
-            responseObserver.onNext(no);
-            responseObserver.onCompleted();
-            return;
-        }
-
         //if I'm already involved in a ride (or i'm involved in a recharge process), I can reply ok immediately
         if(taxi.getState() == Commons.RIDING || taxi.getState() == Commons.WANT_TO_RECHARGE || taxi.getState()==Commons.RECHARGING){
             responseObserver.onNext(yes);
@@ -138,27 +119,39 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
 
 
 
-        //if instead the request is of my same district AND I haven't satisfied it already AND I'm not riding, then...
+        //if instead the request is of my same district AND I'm not riding (or in a state in which I respond yes), then...
         //if this other taxi is asking me about another request, I reply to him immediately, so that we don't let
         //the customers wait
         if(input.getIdRideRequest() != idleThread.currentRequestBeingProcessed){
-            responseObserver.onNext(yes);
-            responseObserver.onCompleted();
+            //if I know it has already been satisfied, I can respond no to him
+            if(idleThread.getIncomingRequestValue(input.getIdRideRequest()) == true){
+                System.out.println("T" + taxi.getId() + " -> T" + input.getTaxiId() + ") No because mama told me it's already been satisfied");
+                responseObserver.onNext(no);
+                responseObserver.onCompleted();
+            }else {
+                //else I respond yes
+                responseObserver.onNext(yes);
+                responseObserver.onCompleted();
+            }
         }else{
             //in this case, the request is from a taxi from my same district AND the id of the taxi request is the same
             //as the one I'm currently considering.
             //The last question is: is this taxi in my set of participating taxis for this election?
+            System.out.println("ELECTION: deciding on " + idleThread.currentRequestBeingProcessed);
             if(!idleThread.isThisTaxiInThisElection(input.getTaxiId())){
                 //if no, let's just tell him that another taxi between all of us will take care of this ride
+                System.out.println("(T" + taxi.getId() + " -> T" + input.getTaxiId() + ") No because you are not in my election");
                 responseObserver.onNext(no);
                 responseObserver.onCompleted();
             }else{
                 //if yes, let's see: who's closer? Who has the most battery? Who has the highest ID?
                 boolean res = idleThread.compareTaxis(input);
                 if(res){
+                    System.out.println("(T" + taxi.getId() + " -> T" + input.getTaxiId() + ") Yes, you win somehow");
                     responseObserver.onNext(yes);
                     responseObserver.onCompleted();
                 }else{
+                    System.out.println("(T" + taxi.getId() + " -> T" + input.getTaxiId() + ") No, I win somehow");
                     responseObserver.onNext(no);
                     responseObserver.onCompleted();
                 }
@@ -203,12 +196,5 @@ public class MiscTaxiServiceImpl extends MiscTaxiServiceImplBase {
         streamObserver.onCompleted();
     }
 
-
-
-    private void debug(String msg){
-        if(Commons.DEBUG_GLOBAL && DEBUG_LOCAL){
-            System.out.println("debug: " + msg);
-        }
-    }
 
 }
